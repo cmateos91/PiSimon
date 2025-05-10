@@ -1,7 +1,7 @@
 // Configuración global de la aplicación
 const AppConfig = {
     // Modo desarrollo: true para desarrollo local, false para producción con Pi Network
-    DEV_MODE: true,
+    DEV_MODE: false,
     
     // URL de la API backend
     API_URL: 'http://localhost:3000',
