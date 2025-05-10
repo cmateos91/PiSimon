@@ -2,6 +2,37 @@
 const PiPayment = (function() {
     const apiUrl = 'http://localhost:3000'; // URL de nuestro backend para desarrollo
     
+    // Simular un pago para desarrollo (cuando no está disponible Pi Browser)
+    function simulatePayment(score) {
+        return new Promise((resolve) => {
+            console.log('Simulando pago para puntuación:', score);
+            
+            // Simular retraso de procesamiento
+            setTimeout(() => {
+                const simulatedPaymentId = 'sim_payment_' + Date.now();
+                
+                // Simular éxito de pago
+                resolve({ 
+                    success: true,
+                    message: 'Pago simulado exitosamente',
+                    data: {
+                        payment: {
+                            paymentId: simulatedPaymentId,
+                            amount: 1,
+                            status: 'completed',
+                            completedAt: new Date()
+                        },
+                        score: {
+                            userId: PiAuth.getCurrentUser().uid,
+                            username: PiAuth.getCurrentUser().username,
+                            score: score
+                        }
+                    }
+                });
+            }, 2000);
+        });
+    }
+    
     // Crear y procesar un pago de 1 Pi para guardar la puntuación
     async function saveScore(score) {
         if (!PiAuth.isAuthenticated()) {
@@ -12,6 +43,13 @@ const PiPayment = (function() {
         try {
             // Mostrar notificación de inicio de pago
             NotificationSystem.show('Preparando transacción de 1 Pi...', 'info');
+            
+            // Verificar si estamos en Pi Browser y decidir qué método usar
+            if (typeof Pi === 'undefined') {
+                console.warn('SDK de Pi no encontrado. Usando simulación de pago.');
+                NotificationSystem.show('Usando simulación de pago para desarrollo', 'info');
+                return await simulatePayment(score);
+            }
             
             // 1. Crear un pago desde el cliente
             const paymentData = await createPayment(score);
@@ -168,6 +206,7 @@ const PiPayment = (function() {
 
     // Exponer métodos públicos
     return {
-        saveScore
+        saveScore,
+        simulatePayment
     };
 })();
