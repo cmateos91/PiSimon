@@ -2,14 +2,6 @@
 const PiAuth = (function() {
     let currentUser = null;
     const apiUrl = AppConfig.API_URL; // URL de nuestro backend desde config
-    
-    // Elementos del DOM
-    const notAuthenticatedElement = document.getElementById('not-authenticated');
-    const authenticatedElement = document.getElementById('authenticated');
-    const usernameElement = document.getElementById('username');
-    const loginButton = document.getElementById('login-button');
-    const logoutButton = document.getElementById('logout-button');
-    const checkPermissionsButton = document.getElementById('check-permissions');
 
     // Inicializar el módulo
 function init() {
@@ -49,9 +41,25 @@ function init() {
             return;
         }
         
-        // La función hasPermissions no está disponible en esta versión del SDK
-        // Mostramos un mensaje informativo
-        NotificationSystem.show('Para asegurar que tienes todos los permisos, cierra sesión y vuelve a iniciarla concediendo permisos de pagos.', 'info', 8000);
+        // Verificar los permisos almacenados
+        if (currentUser && currentUser.scope) {
+            const hasUsername = currentUser.scope.includes('username');
+            const hasPayments = currentUser.scope.includes('payments');
+            
+            if (hasUsername && hasPayments) {
+                NotificationSystem.show('Tienes todos los permisos necesarios para usar la aplicación', 'success');
+                return;
+            }
+            
+            // Listar los permisos faltantes
+            const missingPermissions = [];
+            if (!hasUsername) missingPermissions.push('username');
+            if (!hasPayments) missingPermissions.push('payments');
+            
+            NotificationSystem.show(`Faltan permisos: ${missingPermissions.join(', ')}. ¿Deseas volver a autenticarte?`, 'warning', 8000);
+        } else {
+            NotificationSystem.show('No se pudieron verificar los permisos. Intenta iniciar sesión nuevamente.', 'error');
+        }
         
         // Preguntar si desea cerrar sesión y volver a iniciar
         setTimeout(() => {
@@ -67,57 +75,129 @@ function init() {
     // Verificar si se requiere reautenticación para obtener permisos adicionales
     function checkReauthentication() {
         // Esta función ya no puede verificar permisos porque hasPermissions no está disponible
-        // Sólo verificamos si estamos en Pi Browser
-        if (typeof Pi === 'undefined' || !isAuthenticated()) {
-            return; // No podemos verificar si no está disponible Pi SDK o no estamos autenticados
+        // Verificamos si tenemos los permisos necesarios basados en lo que tenemos guardado
+        if (!isAuthenticated()) {
+            return; // No podemos verificar si no estamos autenticados
         }
         
-        // Mostrar un pequeño indicador recomendando verificar permisos
+        // Verificar si tenemos ambos permisos
+        const hasPaymentsPermission = currentUser.scope && 
+                                     Array.isArray(currentUser.scope) && 
+                                     currentUser.scope.includes('payments');
+        
+        if (!hasPaymentsPermission) {
+            console.warn('Falta el permiso de pagos - Se necesita reautenticación');
+            
+            // Mostrar indicador rojo
+            showPermissionsIndicator();
+        } else {
+            console.log('Todos los permisos verificados correctamente');
+        }
+    }
+    
+    // Mostrar indicador de que faltan permisos
+    function showPermissionsIndicator() {
+        // Crear indicador 
         const reauthIndicator = document.createElement('div');
+        reauthIndicator.id = 'permissions-indicator';
         reauthIndicator.style.cssText = `
             position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 16px;
-            height: 16px;
+            top: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
             background-color: #FF5722;
             border-radius: 50%;
             animation: pulse 2s infinite;
-            opacity: 0.5;
+            opacity: 0.9;
+            z-index: 100;
         `;
         
         // Añadir al botón de usuario
-        const userElement = document.querySelector('#authenticated');
+        const userElement = document.getElementById('authenticated');
         if (userElement && userElement.style.display !== 'none') {
             userElement.style.position = 'relative';
+            
+            // Eliminar indicador previo si existe
+            const existingIndicator = document.getElementById('permissions-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
             userElement.appendChild(reauthIndicator);
         }
     }
     
     // Configurar listeners de eventos
     function setupEventListeners() {
+        console.log('Configurando event listeners para Pi Auth');
+        
         // Botón de login
+        const loginButton = document.getElementById('login-button');
         if (loginButton) {
-            loginButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                authenticate();
-            });
+            console.log('Configurando evento para botón de login');
+            // Clone node para eliminar handlers previos
+            const newLoginButton = loginButton.cloneNode(true);
+            if (loginButton.parentNode) {
+                loginButton.parentNode.replaceChild(newLoginButton, loginButton);
+                
+                // Agregar nuevo evento
+                newLoginButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Botón de login clickeado directamente');
+                    authenticate();
+                    return false;
+                });
+                
+                console.log('Evento de login asignado correctamente');
+            }
+        } else {
+            console.warn('Botón de login no encontrado en el DOM');
         }
         
         // Botón de logout
+        const logoutButton = document.getElementById('logout-button');
         if (logoutButton) {
-            logoutButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                logout();
-            });
+            console.log('Configurando evento para botón de logout');
+            // Clone node para eliminar handlers previos
+            const newLogoutButton = logoutButton.cloneNode(true);
+            if (logoutButton.parentNode) {
+                logoutButton.parentNode.replaceChild(newLogoutButton, logoutButton);
+                
+                // Agregar nuevo evento
+                newLogoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Botón de logout clickeado directamente');
+                    logout();
+                    return false;
+                });
+                
+                console.log('Evento de logout asignado correctamente');
+            }
         }
         
         // Botón de verificación de permisos
+        const checkPermissionsButton = document.getElementById('check-permissions');
         if (checkPermissionsButton) {
-            checkPermissionsButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                checkPermissionsStatus();
-            });
+            console.log('Configurando evento para botón de verificación de permisos');
+            // Clone node para eliminar handlers previos
+            const newCheckPermissionsButton = checkPermissionsButton.cloneNode(true);
+            if (checkPermissionsButton.parentNode) {
+                checkPermissionsButton.parentNode.replaceChild(newCheckPermissionsButton, checkPermissionsButton);
+                
+                // Agregar nuevo evento
+                newCheckPermissionsButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Botón de verificación de permisos clickeado directamente');
+                    checkPermissionsStatus();
+                    return false;
+                });
+                
+                console.log('Evento de verificación de permisos asignado correctamente');
+            }
         }
     }
     
@@ -208,7 +288,7 @@ function init() {
         }, 10000);
     }
     
-    // Autenticar con Pi Network siguiendo la documentación oficial
+    // Autenticar con Pi Network siguiendo el ejemplo que funciona
 function authenticate() {
     console.log('Iniciando autenticación con Pi Network');
     
@@ -223,15 +303,6 @@ function authenticate() {
             return;
         }
         
-        // Asegurarse de que el SDK esté inicializado antes de intentar autenticar
-        try {
-            Pi.init({ version: "2.0" });
-            console.log('Pi SDK inicializado para autenticación');
-        } catch (e) {
-            console.warn('El SDK ya podría estar inicializado:', e);
-            // No es problema si ya está inicializado
-        }
-        
         // Definir callback para manejar pagos incompletos (requerido por Pi Network)
         const handleIncompletePayment = (payment) => {
             console.log("Se encontró un pago incompleto:", payment);
@@ -243,35 +314,28 @@ function authenticate() {
             });
         };
         
-        console.log('Solicitando autenticación a Pi Network con TODOS los permisos necesarios...');
-        // Solicitar ambos permisos a la vez: username y payments
-        Pi.authenticate(['username', 'payments'], handleIncompletePayment).then(function(auth) {
-            console.log('Autenticación exitosa:', auth);
+        // Solicitar ambos permisos juntos como en el ejemplo
+        const scopes = ['payments', 'username'];
+        console.log('Solicitando autenticación con permisos:', scopes);
+        
+        Pi.authenticate(scopes, handleIncompletePayment).then(function(auth) {
+            console.log('Autenticación completa:', auth);
             
-            // Verificar que se hayan concedido todos los permisos requeridos
-            if (auth.scope && Array.isArray(auth.scope)) {
-                const hasUsername = auth.scope.includes('username');
-                const hasPayments = auth.scope.includes('payments');
-                
-                console.log('Permisos concedidos:', {
-                    username: hasUsername,
-                    payments: hasPayments
-                });
-                
-                if (!hasUsername || !hasPayments) {
-                    console.warn('No se concedieron todos los permisos necesarios');
-                    NotificationSystem.show('Se requieren permisos adicionales para el funcionamiento completo.', 'warning', 5000);
-                }
-            }
-            
-            // Construir objeto de usuario
+            // Construir objeto de usuario siguiendo el ejemplo que funciona
             currentUser = {
                 uid: auth.user.uid,
                 username: auth.user.username,
                 accessToken: auth.accessToken,
-                // Guardar los permisos concedidos
                 scope: auth.scope || []
             };
+            
+            // Log detallado de los permisos para depuración
+            if (auth.scope) {
+                console.log('Permisos concedidos:', auth.scope);
+                console.log('¿Tiene permiso de pagos?', auth.scope.includes('payments'));
+            } else {
+                console.warn('No se recibieron permisos en la respuesta de autenticación');
+            }
             
             // Guardar en localStorage
             localStorage.setItem('pi_user', JSON.stringify(currentUser));
@@ -279,28 +343,25 @@ function authenticate() {
             // Actualizar interfaz
             updateUI(true);
             
-            // Mostrar mensajes de éxito
-            NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta de Pi ha sido conectada.`, 'success', 5000);
+            // Mostrar mensaje de éxito
+            NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta ha sido conectada.`, 'success');
             
-            // Intentar verificar con el backend
+            // Verificar backend
             verifyWithBackend(currentUser)
                 .then(response => {
-                    console.log('Verificación con backend exitosa:', response);
+                    console.log('Verificación backend OK:', response);
                 })
                 .catch(error => {
-                    console.error('Error al verificar con backend:', error);
-                    // El servidor no está disponible, pero podemos continuar
+                    console.warn('Error al verificar con backend:', error);
                     NotificationSystem.show('Conectado en modo offline', 'info');
                 });
-                
         }).catch(function(error) {
-            console.error('Error en autenticación Pi:', error);
-            NotificationSystem.show('Error al autenticar con Pi Network. Intenta recargar la página.', 'error', 8000);
+            console.error('Error de autenticación:', error);
+            NotificationSystem.show(`Error al autenticar: ${error.message || error}`, 'error');
         });
-        
     } catch (e) {
-        console.error('Error general en autenticación:', e);
-        NotificationSystem.show('Error al conectar con Pi Network', 'error');
+        console.error('Error inesperado en autenticación:', e);
+        NotificationSystem.show(`Error: ${e.message || e}`, 'error');
     }
 }
     
@@ -349,15 +410,34 @@ function authenticate() {
     
     // Actualizar UI basado en estado de autenticación
     function updateUI(isAuthenticated) {
+        // Obtener elementos del DOM en el momento de actualización
+        const notAuthenticatedElement = document.getElementById('not-authenticated');
+        const authenticatedElement = document.getElementById('authenticated');
+        const usernameElement = document.getElementById('username');
+
         if (isAuthenticated && currentUser) {
+            console.log('Actualizando UI para usuario autenticado:', currentUser.username);
+
             // Ocultar botón de login y mostrar área de usuario autenticado
-            notAuthenticatedElement.style.display = 'none';
+            if (notAuthenticatedElement) {
+                notAuthenticatedElement.style.display = 'none';
+            } else {
+                console.warn('Elemento #not-authenticated no encontrado en el DOM');
+            }
             
             // Configurar nombre de usuario
-            usernameElement.textContent = currentUser.username;
+            if (usernameElement) {
+                usernameElement.textContent = currentUser.username;
+            } else {
+                console.warn('Elemento #username no encontrado en el DOM');
+            }
             
             // Mostrar área de usuario autenticado
-            authenticatedElement.style.display = '';
+            if (authenticatedElement) {
+                authenticatedElement.style.display = '';
+            } else {
+                console.warn('Elemento #authenticated no encontrado en el DOM');
+            }
             
             // Mostrar indicador de conexión
             showConnectionStatus();
@@ -370,14 +450,24 @@ function authenticate() {
                 saveScoreButton.style.display = '';
             }
             
+            // Verificar permisos y mostrar indicador si es necesario
+            setTimeout(checkReauthentication, 1000);
+            
             // Recargar el ranking para mostrar la posición del usuario
             if (typeof LeaderboardManager !== 'undefined' && LeaderboardManager.loadLeaderboard) {
                 LeaderboardManager.loadLeaderboard();
             }
         } else {
+            console.log('Actualizando UI para usuario no autenticado');
+
             // Ocultar área de usuario autenticado y mostrar botón de login
-            authenticatedElement.style.display = 'none';
-            notAuthenticatedElement.style.display = '';
+            if (authenticatedElement) {
+                authenticatedElement.style.display = 'none';
+            }
+            
+            if (notAuthenticatedElement) {
+                notAuthenticatedElement.style.display = '';
+            }
             
             // Ocultar botón de guardar puntuación
             const saveScoreButton = document.getElementById('save-score');
