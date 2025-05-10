@@ -52,51 +52,32 @@ const PiAuth = (function() {
 
     // Inicializar el SDK de Pi
     function init() {
-        // Verificar si ya hay una sesión activa
+        console.log('Inicializando módulo de autenticación Pi');
+        
+        // Verificar si ya hay una sesión activa (sin iniciar autenticación automática)
         const existingSession = checkSession();
         
-        // Verificar si estamos en modo desarrollo
+        // Si estamos en modo desarrollo, podemos habilitar la autenticación automática
         if (AppConfig.DEV_MODE) {
-            console.log('Iniciando en modo desarrollo - No se usará el SDK de Pi');
+            console.log('Iniciando en modo desarrollo - usando SDK simulado de Pi');
             
             // Si no hay sesión, conectar automáticamente en modo desarrollo
             if (!existingSession && !authInProgress) {
                 console.log('Autenticando automáticamente en modo desarrollo');
-                setTimeout(() => {
-                    authenticate();
-                }, 1500);
+                // Nota: El clic se simula ahora desde app.js
             }
-            
-            // Añadir manejadores de eventos para los botones
-            loginButton.addEventListener('click', authenticate);
-            logoutButton.addEventListener('click', logout);
-            return;
         }
         
-        // Verificar si estamos en Pi Browser
-        if (!checkPiEnvironment()) {
-            console.warn('No se detectó Pi Browser. La funcionalidad de autenticación puede no estar disponible.');
-            return;
-        }
-        
-        // Inicializar Pi SDK
-        Pi.init({ 
-            version: "2.0"
-            // No especificamos sandbox para adaptarnos al entorno actual
-        });
-        
-        // Configurar eventos de los botones
-        loginButton.addEventListener('click', authenticate);
-        logoutButton.addEventListener('click', logout);
-        
-        // Si no hay sesión activa, iniciar autenticación automática
-        if (!existingSession && !authInProgress) {
-            console.log('Iniciando autenticación automática con Pi Network');
-            setTimeout(() => {
-                authenticate();
-            }, 1500); // Breve retraso para permitir que la interfaz se cargue
+        // Siempre mostrar UI de autenticación inicial si no hay sesión activa
+        if (!existingSession) {
+            console.log('No hay sesión activa, mostrando UI de login');
+            // Mostrar mensaje y botón de login
+            DOMAnimations.fadeIn(notAuthenticatedElement);
+        } else {
+            console.log('Sesión activa recuperada para:', currentUser.username);
         }
     }
+    
     // Verificar si hay una sesión activa
     function checkSession() {
         const userData = localStorage.getItem('pi_user');
@@ -118,20 +99,85 @@ const PiAuth = (function() {
         }
         return false;
     }
+    
+    // Manejar el éxito de autenticación (llamado desde authenticateWithPi en HTML)
+    function handleAuthSuccess(auth) {
+        console.log('handleAuthSuccess llamado con:', auth);
+        if (!auth) {
+            console.error('Auth recibido es null o undefined');
+            return;
+        }
+        
+        try {
+            // Actualizar estado de autenticación
+            currentUser = {
+                uid: auth.user.uid,
+                username: auth.user.username,
+                accessToken: auth.accessToken
+            };
+            
+            // Guardar en localStorage para persistencia
+            localStorage.setItem('pi_user', JSON.stringify(currentUser));
+            
+            // Actualizar UI
+            usernameElement.textContent = currentUser.username;
+            
+            // Eliminar elemento de conexión si existe
+            const connectingElement = document.getElementById('connecting-status');
+            if (connectingElement) {
+                connectingElement.remove();
+            }
+            
+            // Actualizar interfaz de usuario
+            updateUI(true);
+            
+            // Notificar éxito
+            NotificationSystem.show(`¡Bienvenido, ${currentUser.username}!`, 'success');
+            
+            // Efectos visuales
+            VisualEffects.pulse(authenticatedElement);
+            
+            // Resetear flag de autenticación en progreso
+            authInProgress = false;
+            
+            // Intentar verificar con backend si está disponible
+            try {
+                verifyWithBackend(currentUser)
+                    .then(response => {
+                        console.log('Verificación con backend exitosa:', response);
+                    })
+                    .catch(error => {
+                        console.error('Error al verificar con backend:', error);
+                    });
+            } catch (e) {
+                console.error('Error al iniciar verificación con backend:', e);
+            }
+        } catch (e) {
+            console.error('Error en handleAuthSuccess:', e);
+            authInProgress = false;
+        }
+    }
 
     // Autenticar con Pi Network
     function authenticate() {
+        console.log('========================================');
+        console.log('INICIO PROCESO DE AUTENTICACIÓN');
+        console.log('========================================');
+        
         // Evitar múltiples intentos de autenticación simultáneos
         if (authInProgress) {
             console.log('Proceso de autenticación ya en curso');
             return;
         }
         
+        console.log('Estableciendo authInProgress = true');
         authInProgress = true;
         
         // Mostrar estado de conexión en la interfaz
+        console.log('Ocultando elemento not-authenticated');
         DOMAnimations.fadeOut(notAuthenticatedElement);
         setTimeout(() => {
+            console.log('Creando y mostrando estado de conexión');
             // Crear y mostrar estado de conexión
             const connectingElement = document.createElement('div');
             connectingElement.id = 'connecting-status';
@@ -164,6 +210,7 @@ const PiAuth = (function() {
         }, 300);
         
         // Notificar estado de conexión
+        console.log('Mostrando notificación de conexión');
         NotificationSystem.show('Conectando con Pi Network...', 'info');
         
         // En modo desarrollo, siempre usamos autenticación simulada
@@ -200,78 +247,65 @@ const PiAuth = (function() {
             return;
         }
         
-        Pi.authenticate(
-            // Callback de autenticación exitosa
-            function(auth) {
-                console.log('Autenticación exitosa:', auth);
-                currentUser = {
-                    uid: auth.user.uid,
-                    username: auth.user.username,
-                    accessToken: auth.accessToken
-                };
-
-                // Guardar en localStorage para persistencia
-                localStorage.setItem('pi_user', JSON.stringify(currentUser));
-                
-                // Actualizar UI mientras se verifica con el backend
-                usernameElement.textContent = currentUser.username;
-                
-                // Eliminar elemento de conexión
-                const connectingElement = document.getElementById('connecting-status');
-                if (connectingElement) {
-                    connectingElement.remove();
-                }
-                
-                // Verificar con nuestro backend
-                verifyWithBackend(currentUser)
-                    .then(response => {
-                        console.log('Verificación con backend exitosa:', response);
-                        updateUI(true);
-                        
-                        // Notificar éxito
-                        NotificationSystem.show(`¡Bienvenido, ${currentUser.username}!`, 'success');
-                        
-                        // Efectos visuales
-                        VisualEffects.pulse(authenticatedElement);
-                        authInProgress = false;
-                    })
-                    .catch(error => {
-                        console.error('Error al verificar con backend:', error);
-                        logout();
-                        
-                        // Notificar error
-                        NotificationSystem.show('Error de autenticación. Por favor, intenta de nuevo.', 'error');
-                        
-                        // Mostrar de nuevo el mensaje de no autenticado
-                        DOMAnimations.fadeIn(notAuthenticatedElement);
-                        authInProgress = false;
-                    });
-            },
-            // Callback de error
-            function(error) {
-                console.error('Error de autenticación Pi:', error);
-                console.error('Tipo de error:', typeof error);
-                console.error('Detalles completos:', JSON.stringify(error, null, 2));
-                
-                // Eliminar elemento de conexión
-                const connectingElement = document.getElementById('connecting-status');
-                if (connectingElement) {
-                    connectingElement.remove();
-                }
-                
-                // Mostrar mensaje de no autenticado nuevamente
+        try {
+            console.log('VERIFICANDO EL ESTADO DEL SDK DE PI');
+            console.log('SDK de Pi detectado:', typeof Pi);
+            
+            // Utilizar la función global authenticateWithPi para una mejor compatibilidad
+            if (typeof authenticateWithPi === 'function') {
+                console.log('Utilizando función authenticateWithPi global...');
+                authenticateWithPi();
+            } else {
+                console.error('Función authenticateWithPi no disponible');
+                // Mostrar de nuevo el mensaje de no autenticado
                 DOMAnimations.fadeIn(notAuthenticatedElement);
+                authInProgress = false;
                 
-                // Mostrar notificación más informativa
+                // Mostrar notificación informativa
                 NotificationSystem.show(
-                    'Error al conectar con Pi Network. Asegúrate de estar usando el Pi Browser.', 
+                    'Error inesperado al conectar con Pi Network. Inténtalo más tarde.', 
                     'error', 
                     8000
                 );
-                
-                authInProgress = false;
             }
-        );
+        } catch (error) {
+            console.error('ERROR GRAVE AL AUTENTICAR:', error);
+            // Eliminar elemento de conexión
+            const connectingElement = document.getElementById('connecting-status');
+            if (connectingElement) {
+                connectingElement.remove();
+            }
+            
+            // Mostrar mensaje de no autenticado nuevamente
+            DOMAnimations.fadeIn(notAuthenticatedElement);
+            authInProgress = false;
+            
+            // Mostrar notificación más informativa
+            NotificationSystem.show(
+                'Error inesperado al conectar con Pi Network. Inténtalo más tarde.', 
+                'error', 
+                8000
+            );
+        }
+    }
+    
+    // Función para manejar pagos incompletos (requerida por Pi SDK)
+    function onIncompletePaymentFound(payment) {
+        console.log("Se encontró un pago incompleto:", payment);
+        // Por ahora, solo devolvemos una promesa resuelta
+        // con un objeto que simula un resultado de cancelación
+        if (!payment) {
+            console.log("No se encontraron pagos incompletos");
+            return Promise.resolve(null);
+        }
+        
+        // En una implementación real, esto debería verificar el estado del pago con tu backend
+        return Promise.resolve({
+            status: 'CANCELLED',
+            memo: payment.memo || 'Pago cancelado',
+            amount: payment.amount || 0,
+            transaction: null
+        });
     }
 
     // Verificar con nuestro backend
@@ -359,11 +393,6 @@ const PiAuth = (function() {
                 
                 // Notificar cierre de sesión
                 NotificationSystem.show('Sesión cerrada correctamente', 'info');
-                
-                // Iniciar autenticación automática después de un breve período
-                setTimeout(() => {
-                    authenticate();
-                }, 1000);
             }, 800);
         }, 300);
     }
@@ -423,6 +452,7 @@ const PiAuth = (function() {
         authenticate,
         logout,
         getCurrentUser,
-        isAuthenticated
+        isAuthenticated,
+        handleAuthSuccess // Exponemos este método para que pueda ser llamado desde la función global
     };
 })();

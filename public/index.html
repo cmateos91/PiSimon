@@ -19,9 +19,33 @@
         } else {
             // En modo producción, cargar el SDK real
             document.write('<script src="https://sdk.minepi.com/pi-sdk.js"><\/script>');
-            console.log('Cargando SDK de Pi real');
+            document.write('<script>\n' +
+                'document.addEventListener("DOMContentLoaded", function() {\n' +
+                '    console.log("DOM cargado, inicializando SDK de Pi...");\n' +
+                '    if (typeof Pi !== "undefined") {\n' +
+                '        try {\n' +
+                '            console.log("Inicializando Pi SDK con versión 2.0 - FORZANDO MODO SANDBOX");\n' +
+                '            // Forzamos explícitamente el modo sandbox para evitar problemas de entorno\n' +
+                '            // Esto asegura que siempre usemos el entorno correcto\n' +
+                '            Pi.init({ version: "2.0", sandbox: true });\n' +
+                '            window.piInitDone = true;\n' +
+                '            // Verificar el objeto Pi para depuración\n' +
+                '            console.log("Estado del objeto Pi:", Pi);\n' +
+                '            console.log("Pi SDK inicializado correctamente");\n' +
+                '        } catch(e) {\n' +
+                '            console.error("Error al inicializar Pi SDK:", e);\n' +
+                '        }\n' +
+                '    } else {\n' +
+                '        console.warn("Pi SDK no disponible al cargar la página");\n' +
+                '    }\n' +
+                '});\n' +
+            '<\/script>');
         }
     </script>
+    
+    <!-- Función de ayuda para autenticación con Pi -->
+    <script src="js/piAuthHelper.js"></script>
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -31,13 +55,13 @@
             <h1>Simon <img src="img/pi3d.png" alt="Pi" class="pi-logo-title"></h1>
             <div id="user-info">
                 <div id="not-authenticated" style="display: none;">
-                    <button id="login-button"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Conectar con Pi</button>
+                    <button id="login-button" onclick="authenticateWithPi(); return false;"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Conectar con Pi</button>
                 </div>
                 <div id="authenticated" style="display: none;">
                     <div class="user-info-content">
                         <img src="img/pi3d.png" alt="Pi" class="pi-logo-user">
                         <span id="username">Pioneer</span>
-                        <button id="logout-button"><i class="fas fa-sign-out-alt"></i></button>
+                        <button id="logout-button" onclick="PiAuth.logout();"><i class="fas fa-sign-out-alt"></i></button>
                     </div>
                 </div>
             </div>
@@ -47,7 +71,7 @@
             <div class="game-layout">
                 <div id="game-container">
                 <div id="start-screen">
-                    <h2>Test your memory</h2>
+                    <h2>Test your memorya</h2>
                     <p>Sigue la secuencia de colores y sonidos para desafiar tu mente</p>
                     <button id="start-button">Jugar ahora</button>
                 </div>

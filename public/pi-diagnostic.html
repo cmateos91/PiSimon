@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico de SDK Pi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #8a44f7;
+            text-align: center;
+        }
+        .card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #8a44f7;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #7433e0;
+        }
+        #results {
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #2a8c2a;
+            font-weight: bold;
+        }
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .info {
+            color: #1976d2;
+        }
+        .step {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>Diagnóstico de SDK Pi</h1>
+
+    <div class="card">
+        <h2>Herramienta de diagnóstico para SDK Pi Network</h2>
+        <p>Esta herramienta te ayudará a diagnosticar problemas con la integración del SDK de Pi Network en tu aplicación.</p>
+        
+        <div>
+            <button id="test-sdk">Probar SDK Pi</button>
+            <button id="test-auth">Probar Autenticación</button>
+            <button id="clear-results">Limpiar resultados</button>
+        </div>
+        
+        <div id="results">
+            Pulsa un botón para iniciar un diagnóstico...
+        </div>
+    </div>
+
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script>
+        // Función para mostrar resultados
+        function log(message, type = 'normal') {
+            const results = document.getElementById('results');
+            const date = new Date().toLocaleTimeString();
+            
+            const element = document.createElement('div');
+            element.className = 'step ' + type;
+            element.textContent = `[${date}] ${message}`;
+            
+            results.appendChild(element);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        // Limpiar resultados
+        document.getElementById('clear-results').addEventListener('click', function() {
+            document.getElementById('results').innerHTML = '';
+            log('Resultados borrados', 'info');
+        });
+
+        // Probar la disponibilidad del SDK Pi
+        document.getElementById('test-sdk').addEventListener('click', function() {
+            log('Iniciando prueba del SDK Pi...', 'info');
+            
+            try {
+                // Verificar si Pi está definido
+                if (typeof Pi === 'undefined') {
+                    log('❌ ERROR: SDK Pi no está disponible (typeof Pi === undefined)', 'error');
+                    log('Posibles causas: No estás usando Pi Browser, el SDK no se cargó, o hay un bloqueador de scripts', 'info');
+                    return;
+                }
+                
+                log('✅ SDK Pi está disponible', 'success');
+                
+                // Verificar estructura del objeto Pi
+                log(`Pi object keys: ${Object.keys(Pi).join(', ')}`, 'info');
+                
+                // Verificar que las funciones principales existen
+                if (typeof Pi.init === 'function') {
+                    log('✅ Pi.init es una función', 'success');
+                } else {
+                    log('❌ ERROR: Pi.init no es una función', 'error');
+                }
+                
+                if (typeof Pi.authenticate === 'function') {
+                    log('✅ Pi.authenticate es una función', 'success');
+                } else {
+                    log('❌ ERROR: Pi.authenticate no es una función', 'error');
+                }
+                
+                // Intentar inicializar el SDK
+                try {
+                    log('Intentando inicializar Pi SDK en modo sandbox...', 'info');
+                    Pi.init({ version: "2.0", sandbox: true });
+                    log('✅ Pi SDK inicializado correctamente', 'success');
+                    
+                    // Verificar si hay propiedades adicionales después de init
+                    log(`Pi object keys después de init: ${Object.keys(Pi).join(', ')}`, 'info');
+                    
+                    // Ver detalles específicos si existen
+                    if (Pi.env) {
+                        log(`Entorno Pi: ${Pi.env}`, 'info');
+                    }
+                    
+                    log('Prueba de SDK completada con éxito', 'success');
+                } catch (initError) {
+                    log(`❌ ERROR al inicializar Pi SDK: ${initError.message}`, 'error');
+                    log(`Stack trace: ${initError.stack}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ ERROR general en prueba de SDK: ${error.message}`, 'error');
+                log(`Stack trace: ${error.stack}`, 'error');
+            }
+        });
+
+        // Probar autenticación
+        document.getElementById('test-auth').addEventListener('click', function() {
+            log('Iniciando prueba de autenticación...', 'info');
+            
+            try {
+                // Verificar si Pi está disponible y inicializado
+                if (typeof Pi === 'undefined') {
+                    log('❌ ERROR: SDK Pi no está disponible (typeof Pi === undefined)', 'error');
+                    return;
+                }
+                
+                // Intentar inicializar Pi si no se ha hecho
+                try {
+                    log('Intentando inicializar Pi SDK para autenticación en modo sandbox...', 'info');
+                    Pi.init({ version: "2.0", sandbox: true });
+                    log('Pi SDK inicializado', 'success');
+                } catch (initError) {
+                    // Si ya estaba inicializado, puede dar un error seguro de ignorar
+                    log(`Nota: ${initError.message}`, 'info');
+                }
+                
+                // Callback para pagos incompletos (requerido por Pi)
+                const handleIncompletePayment = function(payment) {
+                    log(`Se encontró un pago incompleto: ${JSON.stringify(payment)}`, 'info');
+                    return Promise.resolve({
+                        status: 'CANCELLED',
+                        memo: payment ? payment.memo : 'Pago cancelado',
+                        amount: payment ? payment.amount : 0,
+                        transaction: null
+                    });
+                };
+                
+                // Intentar autenticación
+                log('Llamando a Pi.authenticate...', 'info');
+                try {
+                    const authResult = Pi.authenticate(['username'], handleIncompletePayment);
+                    
+                    if (authResult && typeof authResult.then === 'function') {
+                        log('Pi.authenticate devolvió una promesa, esperando resultado...', 'info');
+                        authResult.then(auth => {
+                            log(`✅ Autenticación exitosa: ${JSON.stringify(auth)}`, 'success');
+                        }).catch(authError => {
+                            log(`❌ ERROR en promesa de autenticación: ${authError.message}`, 'error');
+                        });
+                    } else if (authResult) {
+                        log(`✅ Autenticación exitosa (resultado directo): ${JSON.stringify(authResult)}`, 'success');
+                    } else {
+                        log('⚠️ Autenticación llamada pero sin resultado claro', 'info');
+                    }
+                } catch (authCallError) {
+                    log(`❌ ERROR al llamar Pi.authenticate: ${authCallError.message}`, 'error');
+                    log(`Stack trace: ${authCallError.stack}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ ERROR general en prueba de autenticación: ${error.message}`, 'error');
+                log(`Stack trace: ${error.stack}`, 'error');
+            }
+        });
+
+        // Información inicial
+        log('Herramienta de diagnóstico cargada', 'info');
+        log(`User Agent: ${navigator.userAgent}`, 'info');
+        log('Pi SDK cargado desde: https://sdk.minepi.com/pi-sdk.js', 'info');
+        log('Selecciona una prueba para comenzar', 'info');
+    </script>
+</body>
+</html>
