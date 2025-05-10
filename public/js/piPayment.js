@@ -1,6 +1,6 @@
 // Módulo de pagos con Pi Network
 const PiPayment = (function() {
-    const apiUrl = 'http://localhost:3000'; // URL de nuestro backend para desarrollo
+    const apiUrl = 'https://pi-simon-api.vercel.app'; // URL de nuestro backend para producción
     
     // Simular un pago para desarrollo (cuando no está disponible Pi Browser)
     function simulatePayment(score) {

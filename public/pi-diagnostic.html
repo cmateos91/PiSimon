@@ -64,18 +64,26 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
         }
+        .pi-logo {
+            display: block;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Diagnóstico de SDK Pi</h1>
+    <img src="img/pi3d.png" alt="Pi Logo" class="pi-logo">
+    <h1>Diagnóstico de SDK Pi Network</h1>
 
     <div class="card">
-        <h2>Herramienta de diagnóstico para SDK Pi Network</h2>
-        <p>Esta herramienta te ayudará a diagnosticar problemas con la integración del SDK de Pi Network en tu aplicación.</p>
+        <h2>Verificación de Entorno Pi Network</h2>
+        <p>Esta herramienta verifica que tu entorno sea compatible con el SDK de Pi Network. Úsala para diagnosticar problemas en la integración.</p>
         
         <div>
-            <button id="test-sdk">Probar SDK Pi</button>
+            <button id="test-sdk">Verificar SDK Pi</button>
             <button id="test-auth">Probar Autenticación</button>
+            <button id="test-environment">Verificar Entorno</button>
             <button id="clear-results">Limpiar resultados</button>
         </div>
         
@@ -107,55 +115,52 @@
 
         // Probar la disponibilidad del SDK Pi
         document.getElementById('test-sdk').addEventListener('click', function() {
-            log('Iniciando prueba del SDK Pi...', 'info');
+            log('Iniciando verificación del SDK Pi...', 'info');
             
             try {
                 // Verificar si Pi está definido
                 if (typeof Pi === 'undefined') {
                     log('❌ ERROR: SDK Pi no está disponible (typeof Pi === undefined)', 'error');
-                    log('Posibles causas: No estás usando Pi Browser, el SDK no se cargó, o hay un bloqueador de scripts', 'info');
+                    log('Esta aplicación requiere Pi Browser. No funcionará en navegadores normales.', 'error');
                     return;
                 }
                 
                 log('✅ SDK Pi está disponible', 'success');
                 
                 // Verificar estructura del objeto Pi
-                log(`Pi object keys: ${Object.keys(Pi).join(', ')}`, 'info');
+                log(`Métodos disponibles en SDK Pi: ${Object.keys(Pi).join(', ')}`, 'info');
                 
                 // Verificar que las funciones principales existen
                 if (typeof Pi.init === 'function') {
-                    log('✅ Pi.init es una función', 'success');
+                    log('✅ Método Pi.init disponible', 'success');
                 } else {
                     log('❌ ERROR: Pi.init no es una función', 'error');
                 }
                 
                 if (typeof Pi.authenticate === 'function') {
-                    log('✅ Pi.authenticate es una función', 'success');
+                    log('✅ Método Pi.authenticate disponible', 'success');
                 } else {
                     log('❌ ERROR: Pi.authenticate no es una función', 'error');
                 }
                 
                 // Intentar inicializar el SDK
                 try {
-                    log('Intentando inicializar Pi SDK en modo producción...', 'info');
-                    Pi.init({ version: "2.0", sandbox: false });
+                    log('Inicializando Pi SDK...', 'info');
+                    Pi.init({ version: "2.0" });
                     log('✅ Pi SDK inicializado correctamente', 'success');
-                    
-                    // Verificar si hay propiedades adicionales después de init
-                    log(`Pi object keys después de init: ${Object.keys(Pi).join(', ')}`, 'info');
                     
                     // Ver detalles específicos si existen
                     if (Pi.env) {
-                        log(`Entorno Pi: ${Pi.env}`, 'info');
+                        log(`Entorno Pi detectado: ${Pi.env}`, 'info');
                     }
                     
-                    log('Prueba de SDK completada con éxito', 'success');
+                    log('Verificación de SDK completada con éxito', 'success');
                 } catch (initError) {
                     log(`❌ ERROR al inicializar Pi SDK: ${initError.message}`, 'error');
                     log(`Stack trace: ${initError.stack}`, 'error');
                 }
             } catch (error) {
-                log(`❌ ERROR general en prueba de SDK: ${error.message}`, 'error');
+                log(`❌ ERROR general en verificación de SDK: ${error.message}`, 'error');
                 log(`Stack trace: ${error.stack}`, 'error');
             }
         });
@@ -165,19 +170,19 @@
             log('Iniciando prueba de autenticación...', 'info');
             
             try {
-                // Verificar si Pi está disponible y inicializado
+                // Verificar si Pi está disponible
                 if (typeof Pi === 'undefined') {
-                    log('❌ ERROR: SDK Pi no está disponible (typeof Pi === undefined)', 'error');
+                    log('❌ ERROR: SDK Pi no está disponible. Esta app requiere Pi Browser.', 'error');
                     return;
                 }
                 
                 // Intentar inicializar Pi si no se ha hecho
                 try {
-                    log('Intentando inicializar Pi SDK para autenticación en modo sandbox...', 'info');
-                    Pi.init({ version: "2.0", sandbox: true });
+                    log('Inicializando Pi SDK para autenticación...', 'info');
+                    Pi.init({ version: "2.0" });
                     log('Pi SDK inicializado', 'success');
                 } catch (initError) {
-                    // Si ya estaba inicializado, puede dar un error seguro de ignorar
+                    // Si ya estaba inicializado, puede dar un error que podemos ignorar
                     log(`Nota: ${initError.message}`, 'info');
                 }
                 
@@ -219,10 +224,64 @@
             }
         });
 
+        // Verificar entorno
+        document.getElementById('test-environment').addEventListener('click', function() {
+            log('Verificando entorno de ejecución...', 'info');
+            
+            // Verificar si estamos en Pi Browser
+            const isPiBrowser = navigator.userAgent.includes('PiBrowser');
+            if (isPiBrowser) {
+                log('✅ Detectado Pi Browser en User Agent', 'success');
+            } else {
+                log('❌ No se detectó Pi Browser en User Agent', 'error');
+                log('User Agent: ' + navigator.userAgent, 'info');
+            }
+            
+            // Verificar dominio
+            const currentDomain = window.location.hostname;
+            if (currentDomain.includes('minepi.com')) {
+                log(`✅ Ejecutando en dominio oficial de Pi: ${currentDomain}`, 'success');
+                
+                // Verificar si es sandbox o mainnet
+                if (currentDomain.includes('sandbox')) {
+                    log('ℹ️ Entorno detectado: SANDBOX (desarrollo/pruebas)', 'info');
+                } else if (currentDomain.includes('app.minepi')) {
+                    log('ℹ️ Entorno detectado: MAINNET (producción)', 'info');
+                }
+            } else {
+                log(`⚠️ No se está ejecutando en dominio oficial de Pi: ${currentDomain}`, 'error');
+                log('Esto puede causar problemas con el SDK de Pi', 'error');
+            }
+            
+            // Verificar protocolo
+            if (window.location.protocol === 'https:') {
+                log('✅ Usando protocolo seguro (HTTPS)', 'success');
+            } else {
+                log('⚠️ No se está usando HTTPS. El SDK de Pi requiere conexión segura.', 'error');
+            }
+            
+            // Verificar conectividad
+            log('Verificando conectividad con servidores de Pi...', 'info');
+            
+            // Intentar cargar un recurso de Pi para verificar conectividad
+            const startTime = Date.now();
+            fetch('https://api.minepi.com/v2/health', { 
+                method: 'GET',
+                mode: 'no-cors' // Debido a CORS, solo podemos verificar si la solicitud se completa
+            })
+            .then(() => {
+                const elapsed = Date.now() - startTime;
+                log(`✅ Conectividad con servidores de Pi verificada (${elapsed}ms)`, 'success');
+            })
+            .catch(error => {
+                log(`❌ Error de conectividad con servidores de Pi: ${error.message}`, 'error');
+            });
+        });
+
         // Información inicial
         log('Herramienta de diagnóstico cargada', 'info');
-        log(`User Agent: ${navigator.userAgent}`, 'info');
-        log('Pi SDK cargado desde: https://sdk.minepi.com/pi-sdk.js', 'info');
+        log(`Fecha y hora: ${new Date().toLocaleString()}`, 'info');
+        log(`URL actual: ${window.location.href}`, 'info');
         log('Selecciona una prueba para comenzar', 'info');
     </script>
 </body>

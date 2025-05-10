@@ -1,92 +1,65 @@
-# Simon Pi Game
+# Simon Pi - Juego de Memoria para Pi Network
 
-Un juego de memoria "Simon dice" para la red Pi Network, donde los usuarios pueden autenticarse con su cuenta de Pi, jugar y guardar sus puntuaciones en un ranking global previo pago de 1 Pi.
+Simon Pi es un juego de memoria para la plataforma Pi Network, optimizado para funcionar en el entorno de Pi Browser y Pi Sandbox.
+
+## Descripción del Proyecto
+
+Simon Pi es un juego de memoria basado en el clásico juego "Simon". El juego muestra una secuencia de colores y sonidos que el jugador debe repetir correctamente. A medida que el jugador avanza, la secuencia se vuelve más larga y difícil de recordar.
+
+Este proyecto está diseñado específicamente para la plataforma Pi Network, utilizando su SDK para autenticación de usuarios y pagos con la criptomoneda Pi.
 
 ## Características
 
-- Juego clásico Simon con 4 colores
-- Autenticación con Pi Network
-- Sistema de pagos con Pi para guardar puntuaciones
-- Ranking global de mejores puntuaciones
+- Juego de memoria con secuencias de colores y sonidos
+- Autenticación de usuarios mediante Pi Network
+- Tabla de clasificación para comparar puntuaciones
+- Opción de guardar puntuaciones mediante micro-pagos con Pi
+- Diseño responsive para dispositivos móviles
 
-## Requisitos previos
+## Requisitos
 
-- Node.js (v14 o superior)
-- MongoDB
-- Cuenta de desarrollador en Pi Network
-- API Key de Pi Network
+- **Pi Browser**: Esta aplicación está diseñada para funcionar exclusivamente en el Pi Browser
+- **Cuenta de Pioneer**: Es necesario tener una cuenta en Pi Network para autenticarse
+- **Backend compatible**: Se requiere un backend para gestionar la autenticación y las puntuaciones
 
-## Configuración del entorno
+## Configuración
 
-1. Clona este repositorio
-2. Configura el archivo `.env` en la carpeta `server` con tus credenciales de Pi Network
-3. Instala las dependencias del servidor:
+1. Modifica el archivo `config.js` para establecer la URL de tu backend:
+   ```javascript
+   API_URL: 'https://tu-backend-para-sandbox.ejemplo.com'
+   ```
 
-```bash
-cd server
-npm install
-```
+2. Asegúrate de que tu aplicación esté registrada en el [Pi Developer Portal](https://developers.minepi.com)
 
-4. Inicia el servidor:
+3. Actualiza el ID de la aplicación en el archivo `config.js`:
+   ```javascript
+   APP_ID: 'tu-app-id-de-pi-network'
+   ```
 
-```bash
-npm run dev
-```
+## Despliegue
 
-5. Abre el navegador en `http://localhost:3000` para acceder a la API
-6. Para el frontend, simplemente abre el archivo `public/index.html` en tu navegador o configura un servidor web estático
+Este proyecto está diseñado para ser desplegado en el entorno de Pi Network:
 
-## Configuración para producción
+1. **Sandbox (Desarrollo)**:
+   - URL: `https://sandbox.minepi.com/app/tu-app-id`
+   - Entorno de pruebas con Pi de prueba
 
-Para desplegar en producción, debes:
+2. **Mainnet (Producción)**:
+   - URL: `https://app.minepi.com/app/tu-app-id`
+   - Entorno de producción con Pi real
 
-1. Registrar tu aplicación en el Developer Portal de Pi Network
-2. Obtener una API Key de producción
-3. Cambiar la configuración a modo producción (Mainnet)
-4. Desplegar el backend en un servidor que soporte Node.js
-5. Configurar MongoDB con autenticación adecuada
-6. Implementar medidas de seguridad adicionales
+## Estructura del Proyecto
 
-## Estructura del proyecto
+- `/public`: Archivos estáticos (HTML, CSS, JavaScript, imágenes, sonidos)
+  - `/css`: Estilos de la aplicación
+  - `/img`: Imágenes e iconos
+  - `/js`: Código JavaScript
+  - `/sound`: Efectos de sonido del juego
 
-```
-simon-pi-game/
-│
-├── public/               # Frontend de la aplicación
-│   ├── css/              # Estilos CSS
-│   ├── js/               # Archivos JavaScript
-│   └── index.html        # Página principal
-│
-└── server/               # Backend de la aplicación
-    ├── models/           # Modelos de Mongoose
-    ├── routes/           # Rutas de la API
-    ├── .env              # Variables de entorno
-    ├── package.json      # Dependencias 
-    └── server.js         # Punto de entrada del servidor
-```
+## Desarrollo
 
-## Integración con Pi Network
+Este proyecto utiliza el Pi SDK para interactuar con la plataforma Pi Network. Para más información, consulta la [documentación oficial del SDK de Pi](https://developers.minepi.com).
 
-Este juego utiliza las siguientes características de Pi Network:
+## Nota Importante
 
-- **Autenticación de usuarios**: Permite a los usuarios iniciar sesión con su cuenta de Pi
-- **Pagos**: Permite a los usuarios pagar 1 Pi para guardar su puntuación en el ranking
-
-## Desarrollo futuro
-
-Algunas ideas para mejoras futuras:
-
-- Añadir más modos de juego
-- Implementar sistema de logros
-- Añadir efectos visuales mejorados
-- Crear una versión móvil nativa
-- Implementar un sistema de torneos
-
-## Licencia
-
-MIT
-
-## Contacto
-
-Para cualquier consulta o sugerencia, puedes contactar a:
-ejemplo@correo.com
+Esta aplicación está diseñada para funcionar exclusivamente en el Pi Browser y el entorno de Pi Network. No funcionará correctamente en navegadores web convencionales o fuera del ecosistema de Pi Network.
