@@ -1,0 +1,891 @@
+/* Estilos para el logo de Pi */
+.pi-logo-title {
+    height: 2.4rem;
+    vertical-align: middle;
+    margin-left: 5px;
+    margin-bottom: 5px;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.pi-logo-center {
+    height: 4rem;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+    animation: logo-glow 3s infinite alternate;
+}
+
+@keyframes logo-glow {
+    from { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); }
+    to { filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)); }
+}
+
+.pi-logo-button {
+    height: 1.2rem;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.pi-logo-footer {
+    height: 1rem;
+    vertical-align: middle;
+    margin: 0 3px;
+    opacity: 0.9;
+}
+/* Estilos generales */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', 'Arial', sans-serif;
+}
+
+:root {
+    --pi-purple: #8a2be2;
+    --pi-purple-dark: #6a1ba2;
+    --pi-purple-light: #a44cf6;
+    --green-color: #00C853;
+    --green-active: #00E676;
+    --red-color: #FF1744;
+    --red-active: #FF5252;
+    --yellow-color: #FFEB3B;
+    --yellow-active: #FFF176;
+    --blue-color: #2979FF;
+    --blue-active: #448AFF;
+    --background: #f8f9fa;
+    --surface: #ffffff;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 6px 10px rgba(0, 0, 0, 0.15);
+    --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --transition-speed: 0.3s;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at top left, var(--pi-purple-light) 0%, transparent 70%),
+                radial-gradient(ellipse at bottom right, var(--pi-purple) 0%, transparent 70%);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Encabezado */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+    position: relative;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100px;
+    height: 3px;
+    background-color: var(--pi-purple);
+    border-radius: 3px;
+}
+
+header h1 {
+    color: var(--pi-purple);
+    font-size: 3rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    display: inline-block;
+}
+
+header h1::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    right: -15px;
+    color: var(--pi-purple-light);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+#user-info {
+    text-align: right;
+    transition: all var(--transition-speed);
+}
+
+button {
+    background-color: var(--pi-purple);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-light);
+}
+
+button:hover {
+    background-color: var(--pi-purple-dark);
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-light);
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(30, 30);
+        opacity: 0;
+    }
+}
+
+button:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+#login-button {
+    background-color: var(--pi-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 25px;
+    font-size: 1.1rem;
+    min-width: 200px;
+}
+
+/* Eliminando pi del botón de login */
+#login-button::before {
+    display: none;
+}
+
+#logout-button {
+    background-color: #f44336;
+}
+
+#logout-button:hover {
+    background-color: #d32f2f;
+}
+
+#authenticated {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-light);
+    transition: all 0.3s;
+}
+
+#authenticated:hover {
+    box-shadow: var(--shadow-medium);
+}
+
+#authenticated p {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+#username {
+    color: var(--pi-purple);
+    font-weight: 600;
+}
+
+/* Área principal con layout de dos columnas */
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    flex-grow: 1;
+}
+
+.game-layout {
+    display: grid;
+    grid-template-columns: 60% 38%;
+    gap: 2%;
+    align-items: flex-start;
+}
+
+@media (max-width: 992px) {
+    .game-layout {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+
+#game-container {
+    background-color: var(--surface);
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: var(--shadow-medium);
+    text-align: center;
+    transition: all 0.3s;
+}
+
+#game-container:hover {
+    box-shadow: var(--shadow-strong);
+}
+
+#start-screen, #game-over {
+    padding: 30px 0;
+    opacity: 0;
+    animation: fadeIn 0.8s forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: var(--pi-purple);
+    font-size: 2rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#start-screen p, #game-over p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    font-size: 1.2rem;
+}
+
+#start-button, #play-again {
+    font-size: 1.3rem;
+    padding: 16px 35px;
+    background: linear-gradient(135deg, var(--pi-purple) 0%, var(--pi-purple-dark) 100%);
+    border-radius: 50px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+    margin: 20px auto;
+    display: block;
+    min-width: 200px;
+}
+
+#start-button:hover, #play-again:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+}
+
+#start-button:active, #play-again:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(138, 43, 226, 0.3);
+}
+
+/* Tablero de juego Simon */
+.score-container {
+    margin-bottom: 30px;
+    background-color: rgba(138, 43, 226, 0.1);
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    color: var(--pi-purple);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.score-container p {
+    font-size: 1.2rem;
+}
+
+#score, #final-score {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--pi-purple-dark);
+}
+
+.simon-container {
+    position: relative;
+    width: 450px;
+    height: 450px;
+    margin: 0 auto 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: var(--shadow-strong);
+    transform: rotate(45deg);
+    transition: all 0.3s;
+}
+
+.simon-container:hover {
+    transform: rotate(45deg) scale(1.02);
+}
+
+/* Nueva animación más sutil para el éxito */
+@keyframes success-pulse {
+    0% { box-shadow: var(--shadow-strong); }
+    50% { box-shadow: 0 0 20px var(--pi-purple-light), 0 8px 25px rgba(0, 0, 0, 0.3); }
+    100% { box-shadow: var(--shadow-strong); }
+}
+
+.success-animation {
+    animation: success-pulse 0.8s ease;
+}
+
+.simon-button {
+    position: absolute;
+    width: 225px;
+    height: 225px;
+    opacity: 0.85;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+.simon-button::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.simon-button:hover::before {
+    opacity: 1;
+}
+
+#green {
+    top: 0;
+    left: 0;
+    background-color: var(--green-color);
+    border-radius: 100% 0 0 0;
+}
+
+#red {
+    top: 0;
+    right: 0;
+    background-color: var(--red-color);
+    border-radius: 0 100% 0 0;
+}
+
+#yellow {
+    bottom: 0;
+    left: 0;
+    background-color: var(--yellow-color);
+    border-radius: 0 0 0 100%;
+}
+
+#blue {
+    bottom: 0;
+    right: 0;
+    background-color: var(--blue-color);
+    border-radius: 0 0 100% 0;
+}
+
+.simon-button.active {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.7), 
+                0 0 30px currentColor,
+                inset 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+#green.active {
+    background-color: var(--green-active);
+}
+
+#red.active {
+    background-color: var(--red-active);
+}
+
+#yellow.active {
+    background-color: var(--yellow-active);
+}
+
+#blue.active {
+    background-color: var(--blue-active);
+}
+
+.simon-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.5);
+    border: 8px solid rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+}
+
+.inner-circle {
+    color: white;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Eliminando pi del inner-circle */
+.inner-circle::before {
+    display: none;
+}
+
+/* Ranking */
+#leaderboard {
+    background-color: var(--surface);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: var(--shadow-medium);
+    transition: all 0.3s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#leaderboard:hover {
+    box-shadow: var(--shadow-strong);
+}
+
+#leaderboard h2 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    text-align: center;
+    justify-content: center;
+}
+
+#leaderboard h2::before {
+    content: "🏆";
+    margin-right: 10px;
+    font-size: 1.5rem;
+}
+
+#leaderboard-loading {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 1.1rem;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#scores-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-light);
+    flex-grow: 1;
+}
+
+#scores-table th, #scores-table td {
+    padding: 15px;
+    text-align: left;
+}
+
+#scores-table th {
+    background-color: rgba(138, 43, 226, 0.1);
+    font-weight: 600;
+    color: var(--pi-purple-dark);
+    position: relative;
+    padding: 15px;
+    font-size: 1.1rem;
+}
+
+#scores-table th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 25%;
+    height: 50%;
+    width: 1px;
+    background-color: rgba(138, 43, 226, 0.2);
+}
+
+#scores-table tbody tr {
+    transition: all 0.2s;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 1.05rem;
+}
+
+#scores-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+#scores-table tbody tr:hover {
+    background-color: rgba(138, 43, 226, 0.05);
+    transform: translateX(5px);
+}
+
+#scores-table tbody tr:first-child {
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+#scores-table tbody tr:first-child td:first-child {
+    position: relative;
+    font-weight: bold;
+    color: var(--pi-purple);
+}
+
+#scores-table tbody tr:first-child td:first-child::before {
+    content: "👑";
+    margin-right: 5px;
+}
+
+/* Footer */
+footer {
+    margin-top: 40px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    padding: 15px 0;
+    border-top: 1px solid rgba(138, 43, 226, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+footer p {
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+footer p:hover {
+    opacity: 1;
+}
+
+footer a {
+    color: var(--pi-purple);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+footer a:hover {
+    color: var(--pi-purple-dark);
+    text-decoration: underline;
+}
+
+/* Estilos para el botón de guardar puntuación */
+#save-score {
+    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    margin-top: 15px;
+    font-size: 1.2rem;
+    padding: 14px 25px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 15px auto 0;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    min-width: 240px;
+}
+
+/* Eliminando pi del botón save-score */
+#save-score::before {
+    display: none;
+}
+
+#save-score:hover {
+    background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* Animaciones */
+@keyframes flash {
+    0% { opacity: 0.85; }
+    50% { opacity: 1; box-shadow: 0 0 30px currentColor; }
+    100% { opacity: 0.85; }
+}
+
+@keyframes button-success {
+    0% { opacity: 0.85; }
+    50% { opacity: 1; box-shadow: 0 0 15px white, 0 0 30px currentColor; }
+    100% { opacity: 0.85; }
+}
+
+.simon-button.success {
+    animation: button-success 0.8s;
+}
+
+.simon-button.flash {
+    animation: flash 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(45deg); }
+    20%, 60% { transform: rotate(47deg); }
+    40%, 80% { transform: rotate(43deg); }
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes celebrate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.celebrate {
+    animation: celebrate 0.5s;
+}
+
+/* Notificaciones */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    background: white;
+    color: #333;
+    box-shadow: var(--shadow-medium);
+    transform: translateX(150%);
+    transition: transform 0.5s;
+    z-index: 1000;
+    max-width: 350px;
+    min-width: 280px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.05rem;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background-color: #DCEDC8;
+    border-left: 4px solid #8BC34A;
+}
+
+.notification.error {
+    background-color: #FFCDD2;
+    border-left: 4px solid #F44336;
+}
+
+.notification.info {
+    background-color: #B3E5FC;
+    border-left: 4px solid #03A9F4;
+}
+
+/* Estilos responsive */
+@media (max-width: 992px) {
+    .simon-container {
+        width: 380px;
+        height: 380px;
+    }
+    
+    .simon-button {
+        width: 190px;
+        height: 190px;
+    }
+    
+    .simon-center {
+        width: 130px;
+        height: 130px;
+    }
+    
+    .inner-circle {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .pi-logo-title {
+        height: 2rem;
+    }
+    
+    .pi-logo-center {
+        height: 3.5rem;
+    }
+    
+    header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    header h1 {
+        margin-bottom: 10px;
+    }
+    
+    #user-info {
+        width: 100%;
+        text-align: center;
+    }
+    
+    main {
+        gap: 20px;
+    }
+    
+    #game-container, #leaderboard {
+        padding: 20px 15px;
+    }
+    
+    .simon-container {
+        width: 350px;
+        height: 350px;
+        margin-bottom: 30px;
+    }
+    
+    .simon-button {
+        width: 175px;
+        height: 175px;
+    }
+    
+    .simon-center {
+        width: 120px;
+        height: 120px;
+    }
+    
+    #scores-table th, #scores-table td {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pi-logo-title {
+        height: 1.7rem;
+    }
+    
+    .pi-logo-center {
+        height: 3rem;
+    }
+    
+    .pi-logo-button {
+        height: 1rem;
+    }
+    
+    .pi-logo-footer {
+        height: 0.9rem;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    button {
+        padding: 10px 15px;
+    }
+    
+    .simon-container {
+        width: 280px;
+        height: 280px;
+    }
+    
+    .simon-button {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .simon-center {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .inner-circle {
+        font-size: 1rem;
+    }
+    
+    #scores-table {
+        font-size: 0.9rem;
+    }
+    
+    #scores-table th, #scores-table td {
+        padding: 8px;
+    }
+}
+
+/* Efecto de confeti para celebraciones */
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background-color: #f2d74e;
+    opacity: 0;
+    animation: confetti-fall 3s linear forwards;
+    z-index: 9999;
+}
+
+@keyframes confetti-fall {
+    0% {
+        opacity: 1;
+        top: -10px;
+        transform: translateX(0) rotateZ(0deg);
+    }
+    100% {
+        opacity: 0;
+        top: 100vh;
+        transform: translateX(100px) rotateZ(360deg);
+    }
+}

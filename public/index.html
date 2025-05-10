@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Pi - El juego de memoria para la red Pi</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <!-- Pi SDK -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simon <img src="img/pi3d.png" alt="Pi" class="pi-logo-title"></h1>
+            <div id="user-info">
+                <div id="not-authenticated">
+                    <button id="login-button"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Iniciar sesión con Pi</button>
+                </div>
+                <div id="authenticated" style="display: none;">
+                    <p>Bienvenido, <span id="username">Pioneer</span>!</p>
+                    <button id="logout-button">Cerrar sesión</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="game-layout">
+                <div id="game-container">
+                <div id="start-screen">
+                    <h2>Pon a prueba tu memoria</h2>
+                    <p>Sigue la secuencia de colores y sonidos para desafiar tu mente</p>
+                    <button id="start-button">Jugar ahora</button>
+                </div>
+
+                <div id="game-board" style="display: none;">
+                    <div class="score-container">
+                        <p>Puntuación: <span id="score">0</span></p>
+                    </div>
+                    <div class="simon-container">
+                        <div class="simon-button" id="green" data-color="green"></div>
+                        <div class="simon-button" id="red" data-color="red"></div>
+                        <div class="simon-button" id="yellow" data-color="yellow"></div>
+                        <div class="simon-button" id="blue" data-color="blue"></div>
+                        <div class="simon-center">
+                            <div class="inner-circle"><img src="img/pi3d.png" alt="Pi" class="pi-logo-center"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="game-over" style="display: none;">
+                    <h2>¡Juego terminado!</h2>
+                    <p>Tu puntuación: <span id="final-score">0</span></p>
+                    <button id="play-again">Jugar de nuevo</button>
+                    <button id="save-score" style="display: none;"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Guardar puntuación (1 Pi)</button>
+                </div>
+                </div>
+
+                <div id="leaderboard">
+                <h2>Ranking de jugadores</h2>
+                <div id="leaderboard-loading">Cargando mejores puntuaciones...</div>
+                <table id="scores-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Posición</th>
+                            <th>Usuario</th>
+                            <th>Puntuación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scores-body">
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer>
+            <p>Simon <img src="img/pi3d.png" alt="Pi" class="pi-logo-footer"> © 2025 - Un juego para la red Pi Network</p>
+            <p>Desarrollado con <i class="fas fa-heart" style="color: #FF4081;"></i> para la comunidad <img src="img/pi3d.png" alt="Pi" class="pi-logo-footer"></p>
+        </footer>
+    </div>
+
+    <!-- Área de notificaciones -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Sonidos para el juego -->
+    <audio id="sound-green" src="https://s3.amazonaws.com/freecodecamp/simonSound1.mp3"></audio>
+    <audio id="sound-red" src="https://s3.amazonaws.com/freecodecamp/simonSound2.mp3"></audio>
+    <audio id="sound-yellow" src="https://s3.amazonaws.com/freecodecamp/simonSound3.mp3"></audio>
+    <audio id="sound-blue" src="https://s3.amazonaws.com/freecodecamp/simonSound4.mp3"></audio>
+    <audio id="sound-wrong" src="https://s3.amazonaws.com/freecodecamp/simonSound4.mp3"></audio>
+    <audio id="sound-success" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+    <audio id="sound-levelup" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-level-complete-2068.mp3"></audio>
+
+    <!-- Scripts de la aplicación -->
+    <script src="js/utils.js"></script>
+    <script src="js/piAuth.js"></script>
+    <script src="js/piPayment.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

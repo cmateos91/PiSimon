@@ -1,0 +1,143 @@
+/* Temas claro y oscuro para Simon Pi */
+
+/* Tema claro (predeterminado) */
+body.light {
+    --pi-purple: #8a2be2;
+    --pi-purple-dark: #6a1ba2;
+    --pi-purple-light: #a44cf6;
+    --green-color: #00C853;
+    --green-active: #00E676;
+    --red-color: #FF1744;
+    --red-active: #FF5252;
+    --yellow-color: #FFEB3B;
+    --yellow-active: #FFF176;
+    --blue-color: #2979FF;
+    --blue-active: #448AFF;
+    --background: #f8f9fa;
+    --surface: #ffffff;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 6px 10px rgba(0, 0, 0, 0.15);
+    --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Tema oscuro */
+body.dark {
+    --pi-purple: #9d4edd;
+    --pi-purple-dark: #7b2cbf;
+    --pi-purple-light: #c77dff;
+    --green-color: #00B04F;
+    --green-active: #00D166;
+    --red-color: #E91E63;
+    --red-active: #F06292;
+    --yellow-color: #FFD600;
+    --yellow-active: #FFEA00;
+    --blue-color: #2962FF;
+    --blue-active: #5C6BC0;
+    --background: #121212;
+    --surface: #1e1e1e;
+    --text-primary: #e0e0e0;
+    --text-secondary: #9e9e9e;
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 6px 10px rgba(0, 0, 0, 0.4);
+    --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Ajustes específicos para el tema oscuro */
+body.dark {
+    background-color: var(--background);
+    color: var(--text-primary);
+}
+
+body.dark::before {
+    opacity: 0.15;
+}
+
+body.dark #game-container,
+body.dark #leaderboard,
+body.dark #authenticated {
+    background-color: var(--surface);
+    box-shadow: var(--shadow-medium);
+}
+
+body.dark header h1 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark #scores-table th {
+    background-color: rgba(157, 78, 221, 0.15);
+}
+
+body.dark #scores-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+body.dark #scores-table tbody tr:hover {
+    background-color: rgba(157, 78, 221, 0.1);
+}
+
+body.dark .notification {
+    background-color: var(--surface);
+    color: var(--text-primary);
+}
+
+body.dark .notification.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    border-left-color: #4CAF50;
+}
+
+body.dark .notification.error {
+    background-color: rgba(244, 67, 54, 0.2);
+    border-left-color: #F44336;
+}
+
+body.dark .notification.info {
+    background-color: rgba(3, 169, 244, 0.2);
+    border-left-color: #03A9F4;
+}
+
+body.dark .about-modal .modal-content {
+    background-color: var(--surface);
+    color: var(--text-primary);
+}
+
+body.dark .simon-center {
+    background-color: #222;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark .score-container {
+    background-color: rgba(157, 78, 221, 0.15);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .controls-menu {
+    background-color: var(--surface);
+    box-shadow: var(--shadow-medium);
+}
+
+body.dark .controls-menu button {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+body.dark .controls-menu button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Transición entre temas */
+body, 
+body::before, 
+#game-container,
+#leaderboard,
+#authenticated,
+.notification,
+.simon-button,
+.simon-center,
+.score-container,
+button,
+#scores-table th,
+#scores-table tbody tr {
+    transition: all 0.3s ease;
+}
