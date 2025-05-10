@@ -229,47 +229,44 @@ const ThemeManager = (function() {
     };
 })();
 
-// Efectos de sonido mejorados
-const SoundEffects = (function() {
-    const sounds = {
-        green: document.getElementById('sound-green'),
-        red: document.getElementById('sound-red'),
-        yellow: document.getElementById('sound-yellow'),
-        blue: document.getElementById('sound-blue'),
-        wrong: document.getElementById('sound-wrong'),
-        success: document.getElementById('sound-success'),
-        levelup: document.getElementById('sound-levelup')
-    };
-    
-    let isMuted = localStorage.getItem('soundMuted') === 'true';
-    
-    // Reproducir sonido
-    function play(soundId) {
-        if (isMuted) return;
+// Efectos de sonido mejorados con optimizaciones para Pi Browser
+const SoundEffects = {
+    play: function(soundId) {
+        // Mapear nombres de sonidos para que coincidan con los nuevos nombres
+        const soundMap = {
+            'wrong': 'wrong',
+            'success': 'success',
+            'levelup': 'levelup'
+        };
         
-        const sound = sounds[soundId];
-        if (sound) {
-            sound.currentTime = 0;
-            sound.play().catch(error => console.error('Error reproduciendo sonido:', error));
+        // Reproducir sonido, usando el mapeo si existe
+        SoundManager.play(soundMap[soundId] || soundId);
+    },
+    
+    toggleMute: function() {
+        return SoundManager.toggleMute();
+    },
+    
+    isSoundMuted: function() {
+        return SoundManager.isMuted();
+    },
+    
+    // Métodos adicionales para manejo del ciclo de vida
+    suspend: function() {
+        if (typeof SoundManager.suspend === 'function') {
+            SoundManager.suspend();
+        }
+    },
+    
+    resume: function() {
+        if (typeof SoundManager.resume === 'function') {
+            SoundManager.resume();
+        }
+    },
+    
+    cleanup: function() {
+        if (typeof SoundManager.cleanup === 'function') {
+            SoundManager.cleanup();
         }
     }
-    
-    // Alternar sonido
-    function toggleMute() {
-        isMuted = !isMuted;
-        localStorage.setItem('soundMuted', isMuted);
-        return isMuted;
-    }
-    
-    // Comprobar si está silenciado
-    function isSoundMuted() {
-        return isMuted;
-    }
-    
-    // Exponer métodos públicos
-    return {
-        play,
-        toggleMute,
-        isSoundMuted
-    };
-})();
+};

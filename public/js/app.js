@@ -1,10 +1,25 @@
 // Archivo principal de la aplicación
+
+// Registrar Service Worker para mejor rendimiento y funcionamiento offline
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/serviceWorker.js')
+        .then(registration => {
+            console.log('Service Worker registrado correctamente:', registration);
+        })
+        .catch(error => {
+            console.error('Error al registrar Service Worker:', error);
+        });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Iniciar pantalla de carga
     const hideLoadingScreen = UIManager.showLoadingScreen();
     
     // Inicializar aplicación después de un breve retraso (efecto visual)
     setTimeout(() => {
+        // Inicializar sistema de sonidos
+        SoundManager.init();
+        
         // Inicializar tema
         ThemeManager.init();
         

@@ -98,17 +98,10 @@
     <!-- Área de notificaciones -->
     <div id="notification" class="notification"></div>
 
-    <!-- Sonidos para el juego -->
-    <audio id="sound-green" src="https://s3.amazonaws.com/freecodecamp/simonSound1.mp3"></audio>
-    <audio id="sound-red" src="https://s3.amazonaws.com/freecodecamp/simonSound2.mp3"></audio>
-    <audio id="sound-yellow" src="https://s3.amazonaws.com/freecodecamp/simonSound3.mp3"></audio>
-    <audio id="sound-blue" src="https://s3.amazonaws.com/freecodecamp/simonSound4.mp3"></audio>
-    <audio id="sound-wrong" src="https://s3.amazonaws.com/freecodecamp/simonSound4.mp3"></audio>
-    <audio id="sound-success" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
-    <audio id="sound-levelup" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-level-complete-2068.mp3"></audio>
-
+    <!-- Quitamos los elementos de audio antiguos ya que ahora usamos precarga programática -->
     <!-- Scripts de la aplicación -->
     <script src="js/utils.js"></script>
+    <script src="js/soundManager.js"></script>
     <script src="js/piAuth.js"></script>
     <script src="js/piPayment.js"></script>
     <script src="js/game.js"></script>

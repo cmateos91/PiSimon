@@ -7,6 +7,48 @@ const UIManager = (function() {
     function init() {
         // Crear botón flotante de configuración
         createConfigButton();
+        
+        // Registrar manejadores de eventos para ciclo de vida del audio
+        setupAudioLifecycle();
+    }
+    
+    // Configurar eventos para manejo de ciclo de vida del audio
+    function setupAudioLifecycle() {
+        // Suspender audio cuando la aplicación pierde el foco
+        window.addEventListener('blur', function() {
+            if (SoundManager && typeof SoundManager.suspend === 'function') {
+                SoundManager.suspend();
+            }
+        });
+        
+        // Reanudar audio cuando la aplicación recupera el foco
+        window.addEventListener('focus', function() {
+            if (SoundManager && typeof SoundManager.resume === 'function') {
+                SoundManager.resume();
+            }
+        });
+        
+        // Manejar visibilidad del documento
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // La página está oculta, suspender audio
+                if (SoundManager && typeof SoundManager.suspend === 'function') {
+                    SoundManager.suspend();
+                }
+            } else {
+                // La página está visible, reanudar audio
+                if (SoundManager && typeof SoundManager.resume === 'function') {
+                    SoundManager.resume();
+                }
+            }
+        });
+        
+        // Liberar recursos al cerrar la página
+        window.addEventListener('beforeunload', function() {
+            if (SoundManager && typeof SoundManager.cleanup === 'function') {
+                SoundManager.cleanup();
+            }
+        });
     }
     
     // Crear botón flotante de configuración
