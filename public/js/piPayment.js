@@ -2,6 +2,24 @@
 const PiPayment = (function() {
     const apiUrl = AppConfig.API_URL; // URL de nuestro backend
     
+    // Verificar si el usuario tiene los permisos necesarios para pagos
+    function checkPaymentsPermission() {
+        // Verificar si el usuario está autenticado
+        if (!PiAuth.isAuthenticated()) {
+            return false;
+        }
+        
+        // Verificar los permisos guardados en el objeto de usuario
+        const currentUser = PiAuth.getCurrentUser();
+        
+        // Verificar si tiene el array de scope y si incluye 'payments'
+        if (currentUser && currentUser.scope && Array.isArray(currentUser.scope)) {
+            return currentUser.scope.includes('payments');
+        }
+        
+        return false;
+    }
+    
     // Crear y procesar un pago de 1 Pi para guardar la puntuación
     async function saveScore(score) {
         if (!PiAuth.isAuthenticated()) {
@@ -9,10 +27,27 @@ const PiPayment = (function() {
             return { success: false, error: 'No autenticado' };
         }
 
-        try {
-            // La verificación de permisos ya no es posible con hasPermissions
-            // Intentaremos el pago directamente y manejaremos cualquier error de permisos
+        // Verificar permisos de pagos
+        if (!checkPaymentsPermission()) {
+            NotificationSystem.show('Se requieren permisos adicionales para realizar pagos', 'error');
             
+            // Preguntar si desea volver a autenticarse para obtener los permisos
+            setTimeout(() => {
+                if (confirm('Para poder realizar pagos, necesitas iniciar sesión nuevamente y conceder los permisos necesarios. ¿Quieres hacerlo ahora?')) {
+                    // Cerrar sesión actual
+                    localStorage.removeItem('pi_user');
+                    
+                    // Esperar un momento y luego recargar para forzar nueva autenticación
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                }
+            }, 500);
+            
+            return { success: false, error: 'Sin permisos de pagos' };
+        }
+
+        try {
             // Mostrar notificación de inicio de pago
             NotificationSystem.show('Preparando transacción de 1 Pi...', 'info');
             

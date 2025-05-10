@@ -1,7 +1,8 @@
 // Configuración global de la aplicación
 const AppConfig = {
     // URL de la API backend (configuración para Pi Network)
-    API_URL: 'https://pi-simon.vercel.app/api',  // URL de la API en el mismo dominio Vercel
+    // Como la app está completamente desplegada en Vercel, usamos la misma URL base
+    API_URL: 'https://pi-simon.vercel.app/api',  // Asegúrate que tus rutas API existan en /api/*
     
     // Información del juego
     GAME_INFO: {

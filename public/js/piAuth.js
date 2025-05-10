@@ -128,13 +128,28 @@ function init() {
             try {
                 currentUser = JSON.parse(userData);
                 
+                // Asegurarnos de que el objeto de usuario tenga la estructura esperada
+                if (!currentUser.uid || !currentUser.username || !currentUser.accessToken) {
+                    console.error('Sesión de usuario incompleta');
+                    localStorage.removeItem('pi_user');
+                    NotificationSystem.show('Error con la sesión guardada. Por favor, inicia sesión de nuevo.', 'error');
+                    return false;
+                }
+                
+                // Asegurarnos de que exista la propiedad 'scope' como array
+                if (!currentUser.scope) {
+                    currentUser.scope = [];
+                    localStorage.setItem('pi_user', JSON.stringify(currentUser));
+                    console.warn('Se agregó la propiedad scope al objeto de usuario');
+                }
+                
                 // Actualizar UI para mostrar que está autenticado
                 updateUI(true);
                 
                 // Mostrar mensaje de bienvenida
                 showWelcomeMessage();
                 
-                console.log('Sesión recuperada:', currentUser.username);
+                console.log('Sesión recuperada:', currentUser.username, 'Permisos:', currentUser.scope);
                 return true;
             } catch (error) {
                 console.error('Error al recuperar la sesión del usuario:', error);
@@ -201,68 +216,71 @@ function authenticate() {
     NotificationSystem.show('Conectando con Pi Network...', 'info');
     
     try {
-    // Verificar que Pi esté disponible
-    if (typeof Pi === 'undefined') {
-    console.error('SDK de Pi no disponible');
-    NotificationSystem.show('Esta aplicación requiere Pi Browser', 'error');
-    return;
-    }
-    
-    // Asegurarse de que el SDK esté inicializado antes de intentar autenticar
-    try {
-    Pi.init({ version: "2.0" });
-    console.log('Pi SDK inicializado para autenticación');
-    } catch (e) {
-    console.warn('El SDK ya podría estar inicializado:', e);
-    // No es problema si ya está inicializado
-    }
-    
-    // Definir callback para manejar pagos incompletos (requerido por Pi Network)
-    const handleIncompletePayment = (payment) => {
-        console.log("Se encontró un pago incompleto:", payment);
-        return Promise.resolve({
-            status: 'CANCELLED',
-        memo: payment ? payment.memo : 'Pago cancelado',
-        amount: payment ? payment.amount : 0,
-        transaction: null
-    });
-    };
-    
-    console.log('Solicitando autenticación a Pi Network...');
-    // Primero solicitamos solo username para simplificar la autenticación inicial
-    Pi.authenticate(['username'], handleIncompletePayment).then(function(auth) {
-    console.log('Autenticación exitosa:', auth);
-    
-    // Construir objeto de usuario
-    currentUser = {
-        uid: auth.user.uid,
-        username: auth.user.username,
-        accessToken: auth.accessToken
-    };
-    
-    // Guardar en localStorage
-    localStorage.setItem('pi_user', JSON.stringify(currentUser));
-    
-    // Actualizar interfaz
-    updateUI(true);
-    
-    // Mostrar mensajes de éxito
-    NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta de Pi ha sido conectada.`, 'success', 5000);
-    
-        // Después solicitamos permisos adicionales si se necesitan pagos
-    setTimeout(() => {
-        if (auth.scope.indexOf('payments') === -1) {
-                console.log('Solicitando permisos de pagos adicionalmente...');
-                Pi.authenticate(['payments'], handleIncompletePayment)
-                        .then(paymentAuth => {
-                        console.log('Permisos de pagos obtenidos:', paymentAuth);
-                        NotificationSystem.show('Permisos de pagos habilitados', 'success');
-                        })
-                        .catch(err => {
-                            console.warn('No se obtuvieron permisos de pagos:', err);
-                        });
+        // Verificar que Pi esté disponible
+        if (typeof Pi === 'undefined') {
+            console.error('SDK de Pi no disponible');
+            NotificationSystem.show('Esta aplicación requiere Pi Browser', 'error');
+            return;
+        }
+        
+        // Asegurarse de que el SDK esté inicializado antes de intentar autenticar
+        try {
+            Pi.init({ version: "2.0" });
+            console.log('Pi SDK inicializado para autenticación');
+        } catch (e) {
+            console.warn('El SDK ya podría estar inicializado:', e);
+            // No es problema si ya está inicializado
+        }
+        
+        // Definir callback para manejar pagos incompletos (requerido por Pi Network)
+        const handleIncompletePayment = (payment) => {
+            console.log("Se encontró un pago incompleto:", payment);
+            return Promise.resolve({
+                status: 'CANCELLED',
+                memo: payment ? payment.memo : 'Pago cancelado',
+                amount: payment ? payment.amount : 0,
+                transaction: null
+            });
+        };
+        
+        console.log('Solicitando autenticación a Pi Network con TODOS los permisos necesarios...');
+        // Solicitar ambos permisos a la vez: username y payments
+        Pi.authenticate(['username', 'payments'], handleIncompletePayment).then(function(auth) {
+            console.log('Autenticación exitosa:', auth);
+            
+            // Verificar que se hayan concedido todos los permisos requeridos
+            if (auth.scope && Array.isArray(auth.scope)) {
+                const hasUsername = auth.scope.includes('username');
+                const hasPayments = auth.scope.includes('payments');
+                
+                console.log('Permisos concedidos:', {
+                    username: hasUsername,
+                    payments: hasPayments
+                });
+                
+                if (!hasUsername || !hasPayments) {
+                    console.warn('No se concedieron todos los permisos necesarios');
+                    NotificationSystem.show('Se requieren permisos adicionales para el funcionamiento completo.', 'warning', 5000);
                 }
-            }, 1000);
+            }
+            
+            // Construir objeto de usuario
+            currentUser = {
+                uid: auth.user.uid,
+                username: auth.user.username,
+                accessToken: auth.accessToken,
+                // Guardar los permisos concedidos
+                scope: auth.scope || []
+            };
+            
+            // Guardar en localStorage
+            localStorage.setItem('pi_user', JSON.stringify(currentUser));
+            
+            // Actualizar interfaz
+            updateUI(true);
+            
+            // Mostrar mensajes de éxito
+            NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta de Pi ha sido conectada.`, 'success', 5000);
             
             // Intentar verificar con el backend
             verifyWithBackend(currentUser)

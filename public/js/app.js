@@ -54,25 +54,41 @@ function initApplication() {
     // Aplicar optimizaciones para dispositivos móviles
     UIManager.applyMobileOptimizations();
     
-    // Asegurarse que el botón de login tenga el evento correcto
+// Fijónate en la parte del código donde asignamos el evento al botón de login
+    // Asegurarse que el botón de login principal tenga el evento correcto
     const loginButton = document.getElementById('login-button');
     if (loginButton) {
-        // Eliminar todos los eventos previos por si acaso
+        console.log('Encontrado botón de login, configurando evento...');
+
+        // Eliminar todos los eventos previos para evitar duplicidad
         const newLoginButton = loginButton.cloneNode(true);
-        loginButton.parentNode.replaceChild(newLoginButton, loginButton);
-        
-        // Agregar evento de click explícito
-        newLoginButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Botón de login clickeado, iniciando autenticación directamente...');
-            PiAuth.authenticate();
-            return false;
-        });
-        
-        console.log('Evento de login asignado correctamente al botón');
+        if (loginButton.parentNode) {
+            loginButton.parentNode.replaceChild(newLoginButton, loginButton);
+            
+            // Agregar evento de click explícito y directo
+            newLoginButton.addEventListener('click', function(event) {
+                console.log('Botón de login clickeado');
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Llamar directamente a la función de autenticación
+                if (typeof PiAuth !== 'undefined') {
+                    console.log('Llamando a PiAuth.authenticate() desde event listener');
+                    PiAuth.authenticate();
+                } else {
+                    console.error('PiAuth no está disponible');
+                    alert('Error: sistema de autenticación no disponible. Intenta recargar la página.');
+                }
+                
+                return false;
+            });
+            
+            console.log('Evento click asignado correctamente al botón de login');
+        } else {
+            console.error('Botón de login no tiene parentNode');
+        }
     } else {
-        console.error('No se encontró el botón de login en el DOM');
+        console.error('No se pudo encontrar el botón de login en el DOM');
     }
     
     // Mostrar mensaje de bienvenida
