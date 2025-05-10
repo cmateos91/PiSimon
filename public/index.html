@@ -139,7 +139,58 @@
     <div id="debug-panel" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
         <button id="pi-sdk-test" class="btn btn-sm btn-info" onclick="testPiSDK(); return false;" style="font-size: 12px;">Probar SDK Pi</button>
         <button id="force-reauth" class="btn btn-sm btn-warning" onclick="if(typeof PiAuth !== 'undefined') { PiAuth.logoutAndReauthenticate(); } else { alert('PiAuth no disponible'); } return false;" style="font-size: 12px; margin-left: 5px;">Reiniciar sesión</button>
+        <button id="request-payments" class="btn btn-sm btn-danger" onclick="requestPaymentsPermissionOnly(); return false;" style="font-size: 12px; margin-left: 5px;">Obtener permiso de pagos</button>
     </div>
+
+    <script>
+        // Función para solicitar solo el permiso de pagos
+        function requestPaymentsPermissionOnly() {
+            if (typeof Pi === 'undefined') {
+                alert('SDK de Pi no disponible. Usa el Pi Browser.');
+                return;
+            }
+            
+            // Definir callback para pagos incompletos
+            const handleIncompletePayment = (payment) => {
+                console.log("Se encontró un pago incompleto:", payment);
+                return Promise.resolve({
+                    status: 'CANCELLED',
+                    memo: payment ? payment.memo : 'Pago cancelado',
+                    amount: payment ? payment.amount : 0,
+                    transaction: null
+                });
+            };
+            
+            // Solicitar solo el permiso de pagos
+            try {
+                console.log('Solicitando SOLO permiso de pagos...');
+                Pi.authenticate(['payments'], handleIncompletePayment)
+                    .then(function(auth) {
+                        console.log('Permiso de pagos obtenido:', auth);
+                        alert('✅ Permiso de pagos concedido. Cierra sesión y vuelve a iniciarla para aplicar.');
+                        
+                        // Actualizar el objeto usuario si existe
+                        if (typeof PiAuth !== 'undefined' && PiAuth.getCurrentUser()) {
+                            const currentUser = PiAuth.getCurrentUser();
+                            if (currentUser && currentUser.scope && Array.isArray(currentUser.scope)) {
+                                if (!currentUser.scope.includes('payments')) {
+                                    currentUser.scope.push('payments');
+                                    localStorage.setItem('pi_user', JSON.stringify(currentUser));
+                                    console.log('Permiso de pagos añadido al usuario actual');
+                                }
+                            }
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error al obtener permiso de pagos:', error);
+                        alert('❌ Error al obtener permiso de pagos: ' + error);
+                    });
+            } catch (e) {
+                console.error('Error al llamar a authenticate:', e);
+                alert('❌ Error: ' + e.message);
+            }
+        }
+    </script>
 
     <script>
         function testPiSDK() {

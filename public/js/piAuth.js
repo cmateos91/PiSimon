@@ -95,6 +95,41 @@ function init() {
         }
     }
     
+    // Continuar con el proceso de autenticación después de verificar permisos
+    function continueWithAuth(auth) {
+        console.log('Continuando proceso de autenticación con:', auth);
+        
+        // Construir objeto de usuario con todos los datos disponibles
+        currentUser = {
+            uid: auth.user.uid,
+            username: auth.user.username,
+            accessToken: auth.accessToken,
+            scope: auth.scope || []
+        };
+        
+        // Registrar los permisos finales
+        console.log('Permisos finales concedidos:', currentUser.scope);
+        
+        // Guardar en localStorage
+        localStorage.setItem('pi_user', JSON.stringify(currentUser));
+        
+        // Actualizar interfaz
+        updateUI(true);
+        
+        // Mostrar mensaje de éxito
+        NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta ha sido conectada.`, 'success');
+        
+        // Verificar backend
+        verifyWithBackend(currentUser)
+            .then(response => {
+                console.log('Verificación backend OK:', response);
+            })
+            .catch(error => {
+                console.warn('Error al verificar con backend:', error);
+                NotificationSystem.show('Conectado en modo offline', 'info');
+            });
+    }
+    
     // Mostrar indicador de que faltan permisos
     function showPermissionsIndicator() {
         // Crear indicador 
@@ -316,49 +351,63 @@ function authenticate() {
         
         // Solicitar ambos permisos juntos como en el ejemplo
         const scopes = ['payments', 'username'];
-        console.log('Solicitando autenticación con permisos:', scopes);
+        console.log('Solicitando autenticación con permisos específicamente en este orden:', scopes);
         
-        Pi.authenticate(scopes, handleIncompletePayment).then(function(auth) {
-            console.log('Autenticación completa:', auth);
-            
-            // Construir objeto de usuario siguiendo el ejemplo que funciona
-            currentUser = {
-                uid: auth.user.uid,
-                username: auth.user.username,
-                accessToken: auth.accessToken,
-                scope: auth.scope || []
-            };
-            
-            // Log detallado de los permisos para depuración
-            if (auth.scope) {
-                console.log('Permisos concedidos:', auth.scope);
-                console.log('¿Tiene permiso de pagos?', auth.scope.includes('payments'));
-            } else {
-                console.warn('No se recibieron permisos en la respuesta de autenticación');
-            }
-            
-            // Guardar en localStorage
-            localStorage.setItem('pi_user', JSON.stringify(currentUser));
-            
-            // Actualizar interfaz
-            updateUI(true);
-            
-            // Mostrar mensaje de éxito
-            NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta ha sido conectada.`, 'success');
-            
-            // Verificar backend
-            verifyWithBackend(currentUser)
-                .then(response => {
-                    console.log('Verificación backend OK:', response);
-                })
-                .catch(error => {
-                    console.warn('Error al verificar con backend:', error);
-                    NotificationSystem.show('Conectado en modo offline', 'info');
-                });
-        }).catch(function(error) {
-            console.error('Error de autenticación:', error);
-            NotificationSystem.show(`Error al autenticar: ${error.message || error}`, 'error');
-        });
+        // Llamar a authenticate directamente, sin usar Promise
+        try {
+            Pi.authenticate(scopes, handleIncompletePayment).then(function(auth) {
+                console.log('Autenticación completa:', auth);
+                
+                // Verificar permisos concedidos
+                if (auth.scope && Array.isArray(auth.scope)) {
+                    console.log('Permisos concedidos por Pi:', auth.scope);
+                    const hasUsername = auth.scope.includes('username');
+                    const hasPayments = auth.scope.includes('payments');
+                    console.log('Tiene permisos de username:', hasUsername);
+                    console.log('Tiene permisos de payments:', hasPayments);
+                    
+                    if (!hasPayments) {
+                        console.warn('NO SE CONCEDIERON PERMISOS DE PAGOS');
+                        // Intentar autenticar con solo permiso de pagos
+                        setTimeout(() => {
+                            console.log('Reintentando autenticación para obtener permiso de pagos...');
+                            Pi.authenticate(['payments'], handleIncompletePayment)
+                                .then(paymentsAuth => {
+                                    console.log('Autenticación para pagos completada:', paymentsAuth);
+                                    
+                                    // Actualizar el objeto usuario con el nuevo permiso
+                                    if (paymentsAuth.scope && paymentsAuth.scope.includes('payments')) {
+                                        console.log('Permiso de pagos concedido en el segundo intento');
+                                        if (!auth.scope.includes('payments')) {
+                                            auth.scope.push('payments');
+                                        }
+                                    }
+                                    
+                                    continueWithAuth(auth);
+                                })
+                                .catch(error => {
+                                    console.error('Error en segunda autenticación:', error);
+                                    // Continuar con los permisos que tengamos
+                                    continueWithAuth(auth);
+                                });
+                        }, 1000);
+                    } else {
+                        // Continuar con la autenticación normal si ya tenemos los permisos
+                        continueWithAuth(auth);
+                    }
+                } else {
+                    console.warn('No se recibieron permisos en la respuesta de autenticación');
+                    continueWithAuth(auth);
+                }
+                
+            }).catch(function(error) {
+                console.error('Error de autenticación Pi:', error);
+                NotificationSystem.show(`Error de autenticación: ${error}`, 'error');
+            });
+        } catch (err) {
+            console.error('Error al llamar a Pi.authenticate:', err);
+            NotificationSystem.show(`Error: ${err.message || err}`, 'error');
+        }
     } catch (e) {
         console.error('Error inesperado en autenticación:', e);
         NotificationSystem.show(`Error: ${e.message || e}`, 'error');
@@ -451,7 +500,26 @@ function authenticate() {
             }
             
             // Verificar permisos y mostrar indicador si es necesario
-            setTimeout(checkReauthentication, 1000);
+            // Esta verificación ocurre SIEMPRE que se actualiza la UI con un usuario autenticado
+            // Verificar si tenemos los permisos necesarios
+            const hasPaymentsPermission = currentUser.scope && 
+                                           Array.isArray(currentUser.scope) && 
+                                           currentUser.scope.includes('payments');
+            
+            console.log('UI - Verificando permisos, tiene payments:', hasPaymentsPermission);
+            
+            if (!hasPaymentsPermission) {
+                // Si no tiene permisos de pagos, mostrar indicador
+                showPermissionsIndicator();
+                console.warn('UI - Falta permiso de pagos, mostrando indicador');
+            } else {
+                // Si tiene todos los permisos, asegurarse de que no haya indicador
+                const indicator = document.getElementById('permissions-indicator');
+                if (indicator && indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+                console.log('UI - Todos los permisos OK, quitando indicador si existe');
+            }
             
             // Recargar el ranking para mostrar la posición del usuario
             if (typeof LeaderboardManager !== 'undefined' && LeaderboardManager.loadLeaderboard) {

@@ -6,18 +6,25 @@ const PiPayment = (function() {
     function checkPaymentsPermission() {
         // Verificar si el usuario está autenticado
         if (!PiAuth.isAuthenticated()) {
+            console.error('No se puede verificar permisos: usuario no autenticado');
             return false;
         }
         
         // Verificar los permisos guardados en el objeto de usuario
         const currentUser = PiAuth.getCurrentUser();
+        console.log('Verificando permisos de pago para usuario:', currentUser);
         
-        // Verificar si tiene el array de scope y si incluye 'payments'
-        if (currentUser && currentUser.scope && Array.isArray(currentUser.scope)) {
-            return currentUser.scope.includes('payments');
+        // Verificar si existe la scope array
+        if (!currentUser.scope || !Array.isArray(currentUser.scope)) {
+            console.error('Scope no es un array válido:', currentUser.scope);
+            return false;
         }
         
-        return false;
+        // Verificar si incluye 'payments'
+        const hasPaymentsPermission = currentUser.scope.includes('payments');
+        console.log('¿Tiene permiso de pagos?', hasPaymentsPermission, '(scope:', currentUser.scope, ')');
+        
+        return hasPaymentsPermission;
     }
     
     // Crear y procesar un pago de 1 Pi para guardar la puntuación
