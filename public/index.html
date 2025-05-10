@@ -30,12 +30,15 @@
         <header>
             <h1>Simon <img src="img/pi3d.png" alt="Pi" class="pi-logo-title"></h1>
             <div id="user-info">
-                <div id="not-authenticated">
-                    <button id="login-button"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Iniciar sesión con Pi</button>
+                <div id="not-authenticated" style="display: none;">
+                    <button id="login-button"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Conectar con Pi</button>
                 </div>
                 <div id="authenticated" style="display: none;">
-                    <p>Bienvenido, <span id="username">Pioneer</span>!</p>
-                    <button id="logout-button">Cerrar sesión</button>
+                    <div class="user-info-content">
+                        <img src="img/pi3d.png" alt="Pi" class="pi-logo-user">
+                        <span id="username">Pioneer</span>
+                        <button id="logout-button"><i class="fas fa-sign-out-alt"></i></button>
+                    </div>
                 </div>
             </div>
         </header>
