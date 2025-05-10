@@ -9,6 +9,7 @@ const PiAuth = (function() {
     const usernameElement = document.getElementById('username');
     const loginButton = document.getElementById('login-button');
     const logoutButton = document.getElementById('logout-button');
+    const checkPermissionsButton = document.getElementById('check-permissions');
 
     // Inicializar el módulo
     function init() {
@@ -26,21 +27,104 @@ const PiAuth = (function() {
         
         // Configurar listeners de eventos
         setupEventListeners();
+        
+        // Verificar si se necesita reautenticación para permisos adicionales
+        setTimeout(checkReauthentication, 2000);
+    }
+    
+    // Verificar y mostrar estado de permisos
+    function checkPermissionsStatus() {
+        if (typeof Pi === 'undefined') {
+            NotificationSystem.show('SDK de Pi no disponible', 'error');
+            return;
+        }
+        
+        const hasUsername = Pi.hasPermissions(['username']);
+        const hasPayments = Pi.hasPermissions(['payments']);
+        
+        let message = '';
+        let type = 'success';
+        
+        if (hasUsername && hasPayments) {
+            message = '✅ Tu cuenta tiene todos los permisos necesarios';
+        } else {
+            message = '⚠️ Faltan permisos:';
+            if (!hasUsername) message += ' username';
+            if (!hasPayments) message += ' payments';
+            message += '. Por favor, vuelve a iniciar sesión.';
+            type = 'warning';
+            
+            // Sugerir cerrar sesión y volver a iniciar
+            setTimeout(() => {
+                // Confirmar si quiere reiniciar sesión
+                if (confirm('Para obtener todos los permisos necesarios, debes cerrar sesión y volver a iniciarla. ¿Quieres hacerlo ahora?')) {
+                    logout(true);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                }
+            }, 1000);
+        }
+        
+        NotificationSystem.show(message, type, 5000);
+    }
+    
+    // Verificar si se requiere reautenticación para obtener permisos adicionales
+    function checkReauthentication() {
+        if (typeof Pi === 'undefined' || !isAuthenticated()) {
+            return; // No podemos verificar si no está disponible Pi SDK o no estamos autenticados
+        }
+        
+        // Comprobar si tenemos los permisos necesarios
+        if (!Pi.hasPermissions(['payments'])) {
+            // Mostrar mensaje indicando que se requieren permisos adicionales
+            NotificationSystem.show('Se recomienda iniciar sesión nuevamente para obtener todos los permisos', 'info', 8000);
+            
+            // Mostrar indicador visual para sugerir reautenticación
+            const reauthIndicator = document.createElement('div');
+            reauthIndicator.style.cssText = `
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                width: 16px;
+                height: 16px;
+                background-color: #FF5722;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+            `;
+            
+            // Añadir al botón de usuario
+            const userElement = document.querySelector('#authenticated');
+            if (userElement && userElement.style.display !== 'none') {
+                userElement.style.position = 'relative';
+                userElement.appendChild(reauthIndicator);
+            }
+        }
     }
     
     // Configurar listeners de eventos
     function setupEventListeners() {
         // Botón de login
-        loginButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            authenticate();
-        });
+        if (loginButton) {
+            loginButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                authenticate();
+            });
+        }
         
         // Botón de logout
         if (logoutButton) {
             logoutButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 logout();
+            });
+        }
+        
+        // Botón de verificación de permisos
+        if (checkPermissionsButton) {
+            checkPermissionsButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                checkPermissionsStatus();
             });
         }
     }
@@ -144,7 +228,8 @@ const PiAuth = (function() {
             };
             
             // Llamar al método de autenticación según la documentación oficial
-            Pi.authenticate(['username'], handleIncompletePayment).then(function(auth) {
+            // Solicitamos los scopes 'username' y 'payments'
+            Pi.authenticate(['username', 'payments'], handleIncompletePayment).then(function(auth) {
                 console.log('Autenticación exitosa:', auth);
                 
                 // Construir objeto de usuario
@@ -211,9 +296,9 @@ const PiAuth = (function() {
     }
     
     // Cerrar sesión
-    function logout() {
-        // Confirmar cierre de sesión
-        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+    function logout(skipConfirm = false) {
+        // Confirmar cierre de sesión, a menos que se especifique omitir
+        if (skipConfirm || confirm('¿Estás seguro de que deseas cerrar sesión?')) {
             // Eliminar sesión
             localStorage.removeItem('pi_user');
             currentUser = null;
@@ -282,6 +367,7 @@ const PiAuth = (function() {
         authenticate,
         logout,
         getCurrentUser,
-        isAuthenticated
+        isAuthenticated,
+        checkPermissionsStatus
     };
 })();
