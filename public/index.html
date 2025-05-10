@@ -18,6 +18,42 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Script para agregar evento directo al botón de login -->
+    <script>
+        // Esperar a que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado, configurando evento para botón de login');
+            
+            // Función para asegurar que el botón de login tenga evento
+            function configureLoginButton() {
+                const loginButton = document.getElementById('login-button');
+                if (loginButton) {
+                    console.log('Botón de login encontrado, asignando evento');
+                    loginButton.addEventListener('click', function(e) {
+                        console.log('Botón de login clickeado desde evento global');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Intentar autenticar
+                        if (typeof PiAuth !== 'undefined' && PiAuth.authenticate) {
+                            PiAuth.authenticate();
+                        } else {
+                            console.error('PiAuth no disponible');
+                            alert('Error: PiAuth no está disponible');
+                        }
+                        
+                        return false;
+                    });
+                } else {
+                    console.warn('Botón de login no encontrado, reintentando en 1 segundo');
+                    setTimeout(configureLoginButton, 1000); // Reintentar en 1 segundo
+                }
+            }
+            
+            // Llamar a la función para configurar el botón
+            configureLoginButton();
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -25,7 +61,10 @@
             <h1>Simon <img src="img/pi3d.png" alt="Pi" class="pi-logo-title"></h1>
             <div id="user-info">
                 <div id="not-authenticated">
-                    <button id="login-button"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Conectar con Pi</button>
+                    <button id="login-button" onclick="PiAuth.authenticate(); console.log('Login button clicked from inline handler'); return false;"><img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Conectar con Pi</button>
+                    <div style="margin-top: 5px; font-size: 12px;">
+                        <a href="#" id="alt-login-link" onclick="if(typeof PiAuth !== 'undefined') { PiAuth.authenticate(); } else { alert('Error: PiAuth no disponible'); } return false;">Problemas para conectar? Haz clic aquí</a>
+                    </div>
                 </div>
                 <div id="authenticated" style="display: none;">
                     <div class="user-info-content">
@@ -95,6 +134,53 @@
 
     <!-- Área de notificaciones -->
     <div id="notification" class="notification"></div>
+
+    <!-- Botón de diagnóstico (solo visible en desarrollo) -->
+    <div id="debug-panel" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+        <button id="pi-sdk-test" class="btn btn-sm btn-info" onclick="testPiSDK(); return false;" style="font-size: 12px;">Probar SDK Pi</button>
+        <button id="force-reauth" class="btn btn-sm btn-warning" onclick="if(typeof PiAuth !== 'undefined') { PiAuth.logoutAndReauthenticate(); } else { alert('PiAuth no disponible'); } return false;" style="font-size: 12px; margin-left: 5px;">Reiniciar sesión</button>
+    </div>
+
+    <script>
+        function testPiSDK() {
+            console.log('Probando SDK Pi...');
+            var statusMessage = "Diagnóstico del SDK Pi:\n";
+            
+            // Comprobar si Pi está definido
+            if (typeof Pi === 'undefined') {
+                statusMessage += "\n\u274C SDK Pi NO DISPONIBLE\n";
+                statusMessage += "Esta aplicación requiere el Pi Browser para funcionar correctamente.";
+                alert(statusMessage);
+                return;
+            }
+            
+            statusMessage += "\n\u2705 SDK Pi disponible\n";
+            
+            // Comprobar métodos disponibles
+            statusMessage += "\nMétodos disponibles: " + Object.keys(Pi).join(", ");
+            
+            if (typeof Pi.authenticate === 'function') {
+                statusMessage += "\n\u2705 Método authenticate disponible";
+                
+                // Intentar autenticar para probar el SDK
+                try {
+                    statusMessage += "\n\nIntentando autenticar...";
+                    alert(statusMessage + "\n\nSe intentará autenticar ahora...");
+                    
+                    Pi.authenticate(['username'], function(){}).then(function(auth) {
+                        alert("\u2705 Autenticación exitosa con Pi!\n\nUsuario: " + auth.user.username);
+                    }).catch(function(error) {
+                        alert("\u274C Error de autenticación: " + error);
+                    });
+                } catch(e) {
+                    alert("\u274C Error al llamar a authenticate: " + e.message);
+                }
+            } else {
+                statusMessage += "\n\u274C Método authenticate NO disponible";
+                alert(statusMessage);
+            }
+        }
+    </script>
 
     <!-- Scripts de la aplicación -->
     <script src="js/utils.js"></script>

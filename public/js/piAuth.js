@@ -487,6 +487,24 @@ function authenticate() {
         return currentUser !== null;
     }
     
+    // Cerrar sesión y reautenticar inmediatamente (para emergencias)
+    function logoutAndReauthenticate() {
+        console.log('Cerrando sesión y reautenticando...');
+        
+        // Borrar sesión actual
+        localStorage.removeItem('pi_user');
+        currentUser = null;
+        
+        // Actualizar la UI
+        updateUI(false);
+        
+        // Esperar un momento para que se limpie todo
+        setTimeout(() => {
+            console.log('Reintentando autenticación después de cerrar sesión');
+            authenticate();
+        }, 500);
+    }
+
     // API pública
     return {
         init,
@@ -494,6 +512,7 @@ function authenticate() {
         logout,
         getCurrentUser,
         isAuthenticated,
-        checkPermissionsStatus
+        checkPermissionsStatus,
+        logoutAndReauthenticate
     };
 })();
