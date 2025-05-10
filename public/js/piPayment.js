@@ -107,7 +107,7 @@ const PiPayment = (function() {
                     gameId: 'simon-pi'
                 }
             }, {
-                // Callback de pago completado
+                // Callback de pago listo para aprobación del servidor
                 onReadyForServerApproval: function(paymentId) {
                     console.log('Pago listo para aprobación del servidor:', paymentId);
                     
@@ -118,6 +118,16 @@ const PiPayment = (function() {
                         paymentId,
                         status: 'ready_for_server_approval'
                     });
+                },
+                // Callback de pago listo para completar por el servidor
+                onReadyForServerCompletion: function(paymentId, txid) {
+                    console.log('Pago listo para completar:', paymentId, 'Transacción ID:', txid);
+                    
+                    // Mostrar notificación
+                    NotificationSystem.show('Transacción confirmada, completando pago...', 'info');
+                    
+                    // No necesitamos hacer nada más aquí, ya que el flujo continúa con el resultado del callback anterior
+                    // El backend ya estará procesando la aprobación y completará el pago
                 },
                 // Callback de pago cancelado
                 onCancel: function(paymentId) {

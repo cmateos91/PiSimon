@@ -1,7 +1,7 @@
 // Configuración global de la aplicación
 const AppConfig = {
     // URL de la API backend (configuración para Pi Network)
-    API_URL: 'https://tu-backend-para-sandbox.ejemplo.com',  // Cambia esto a tu backend real
+    API_URL: 'https://pi-simon.vercel.app/api',  // URL de la API en el mismo dominio Vercel
     
     // Información del juego
     GAME_INFO: {
@@ -12,7 +12,7 @@ const AppConfig = {
     // Configuración de la aplicación en Pi Network
     AUTH: {
         // ID de la aplicación en Pi Network
-        APP_ID: 'simon-pi-game' // Reemplaza con tu ID real
+        APP_ID: 'pi-simon' // Debe coincidir exactamente con el ID en el Developer Portal
     },
     
     // Mensajes para el usuario

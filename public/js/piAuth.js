@@ -12,25 +12,35 @@ const PiAuth = (function() {
     const checkPermissionsButton = document.getElementById('check-permissions');
 
     // Inicializar el módulo
-    function init() {
-        console.log('Inicializando módulo de autenticación Pi');
-        
-        // Verificar si Pi SDK está disponible
-        if (typeof Pi === 'undefined') {
-            console.error('SDK de Pi no disponible. Esta aplicación requiere Pi Browser.');
-            NotificationSystem.show('Esta aplicación requiere Pi Browser', 'error');
-            return;
-        }
-        
-        // Verificar si hay una sesión guardada en localStorage
-        checkSession();
-        
-        // Configurar listeners de eventos
-        setupEventListeners();
-        
-        // Verificar si se necesita reautenticación para permisos adicionales
-        setTimeout(checkReauthentication, 2000);
+function init() {
+    console.log('Inicializando módulo de autenticación Pi');
+    
+    // Verificar si Pi SDK está disponible
+    if (typeof Pi === 'undefined') {
+    console.error('SDK de Pi no disponible. Esta aplicación requiere Pi Browser.');
+    NotificationSystem.show('Esta aplicación requiere Pi Browser', 'error');
+    return;
     }
+    
+    // Asegurarse de que el SDK esté inicializado correctamente
+    try {
+        console.log('Iniciando Pi SDK...');
+        Pi.init({ version: "2.0" });
+        console.log('Pi SDK iniciado con éxito');
+    } catch (e) {
+        console.warn('El SDK ya podría estar inicializado:', e);
+        // No es problema si ya está inicializado
+    }
+    
+    // Verificar si hay una sesión guardada en localStorage
+    checkSession();
+    
+    // Configurar listeners de eventos
+    setupEventListeners();
+    
+    // Verificar si se necesita reautenticación para permisos adicionales
+    setTimeout(checkReauthentication, 2000);
+}
     
     // Verificar y mostrar estado de permisos
     function checkPermissionsStatus() {
@@ -184,71 +194,97 @@ const PiAuth = (function() {
     }
     
     // Autenticar con Pi Network siguiendo la documentación oficial
-    function authenticate() {
-        console.log('Iniciando autenticación con Pi Network');
-        
-        // Mostrar notificación
-        NotificationSystem.show('Conectando con Pi Network...', 'info');
-        
-        try {
-            // Verificar que Pi esté disponible
-            if (typeof Pi === 'undefined') {
-                console.error('SDK de Pi no disponible');
-                NotificationSystem.show('Esta aplicación requiere Pi Browser', 'error');
-                return;
-            }
-            
-            // Definir callback para manejar pagos incompletos (requerido por Pi Network)
-            const handleIncompletePayment = (payment) => {
-                console.log("Se encontró un pago incompleto:", payment);
-                return Promise.resolve({
-                    status: 'CANCELLED',
-                    memo: payment ? payment.memo : 'Pago cancelado',
-                    amount: payment ? payment.amount : 0,
-                    transaction: null
-                });
-            };
-            
-            // Llamar al método de autenticación según la documentación oficial
-            // Solicitamos explícitamente los permisos 'username' y 'payments'
-            Pi.authenticate(['username', 'payments'], handleIncompletePayment).then(function(auth) {
-                console.log('Autenticación exitosa:', auth);
-                
-                // Construir objeto de usuario
-                currentUser = {
-                    uid: auth.user.uid,
-                    username: auth.user.username,
-                    accessToken: auth.accessToken
-                };
-                
-                // Guardar en localStorage
-                localStorage.setItem('pi_user', JSON.stringify(currentUser));
-                
-                // Actualizar interfaz
-                updateUI(true);
-                
-                // Mostrar mensajes de éxito
-                NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta de Pi ha sido conectada.`, 'success', 5000);
-                
-                // Intentar verificar con el backend
-                verifyWithBackend(currentUser)
-                    .then(response => {
-                        console.log('Verificación con backend exitosa:', response);
-                    })
-                    .catch(error => {
-                        console.error('Error al verificar con backend:', error);
-                    });
-                    
-            }).catch(function(error) {
-                console.error('Error en autenticación Pi:', error);
-                NotificationSystem.show('Error al autenticar con Pi Network', 'error');
-            });
-            
-        } catch (e) {
-            console.error('Error general en autenticación:', e);
-            NotificationSystem.show('Error al conectar con Pi Network', 'error');
-        }
+function authenticate() {
+    console.log('Iniciando autenticación con Pi Network');
+    
+    // Mostrar notificación
+    NotificationSystem.show('Conectando con Pi Network...', 'info');
+    
+    try {
+    // Verificar que Pi esté disponible
+    if (typeof Pi === 'undefined') {
+    console.error('SDK de Pi no disponible');
+    NotificationSystem.show('Esta aplicación requiere Pi Browser', 'error');
+    return;
     }
+    
+    // Asegurarse de que el SDK esté inicializado antes de intentar autenticar
+    try {
+    Pi.init({ version: "2.0" });
+    console.log('Pi SDK inicializado para autenticación');
+    } catch (e) {
+    console.warn('El SDK ya podría estar inicializado:', e);
+    // No es problema si ya está inicializado
+    }
+    
+    // Definir callback para manejar pagos incompletos (requerido por Pi Network)
+    const handleIncompletePayment = (payment) => {
+        console.log("Se encontró un pago incompleto:", payment);
+        return Promise.resolve({
+            status: 'CANCELLED',
+        memo: payment ? payment.memo : 'Pago cancelado',
+        amount: payment ? payment.amount : 0,
+        transaction: null
+    });
+    };
+    
+    console.log('Solicitando autenticación a Pi Network...');
+    // Primero solicitamos solo username para simplificar la autenticación inicial
+    Pi.authenticate(['username'], handleIncompletePayment).then(function(auth) {
+    console.log('Autenticación exitosa:', auth);
+    
+    // Construir objeto de usuario
+    currentUser = {
+        uid: auth.user.uid,
+        username: auth.user.username,
+        accessToken: auth.accessToken
+    };
+    
+    // Guardar en localStorage
+    localStorage.setItem('pi_user', JSON.stringify(currentUser));
+    
+    // Actualizar interfaz
+    updateUI(true);
+    
+    // Mostrar mensajes de éxito
+    NotificationSystem.show(`¡Hola ${currentUser.username}! Tu cuenta de Pi ha sido conectada.`, 'success', 5000);
+    
+        // Después solicitamos permisos adicionales si se necesitan pagos
+    setTimeout(() => {
+        if (auth.scope.indexOf('payments') === -1) {
+                console.log('Solicitando permisos de pagos adicionalmente...');
+                Pi.authenticate(['payments'], handleIncompletePayment)
+                        .then(paymentAuth => {
+                        console.log('Permisos de pagos obtenidos:', paymentAuth);
+                        NotificationSystem.show('Permisos de pagos habilitados', 'success');
+                        })
+                        .catch(err => {
+                            console.warn('No se obtuvieron permisos de pagos:', err);
+                        });
+                }
+            }, 1000);
+            
+            // Intentar verificar con el backend
+            verifyWithBackend(currentUser)
+                .then(response => {
+                    console.log('Verificación con backend exitosa:', response);
+                })
+                .catch(error => {
+                    console.error('Error al verificar con backend:', error);
+                    // El servidor no está disponible, pero podemos continuar
+                    NotificationSystem.show('Conectado en modo offline', 'info');
+                });
+                
+        }).catch(function(error) {
+            console.error('Error en autenticación Pi:', error);
+            NotificationSystem.show('Error al autenticar con Pi Network. Intenta recargar la página.', 'error', 8000);
+        });
+        
+    } catch (e) {
+        console.error('Error general en autenticación:', e);
+        NotificationSystem.show('Error al conectar con Pi Network', 'error');
+    }
+}
     
     // Verificar con nuestro backend
     async function verifyWithBackend(user) {

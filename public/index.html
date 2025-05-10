@@ -12,7 +12,15 @@
     <!-- Pi SDK - Usar exactamente como especifica la documentación -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <script>
-        Pi.init({ version: "2.0" });
+        // Determinar si estamos en entorno de desarrollo o producción
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' ||
+                            window.location.hostname.includes('192.168.');
+        
+        Pi.init({ 
+            version: "2.0",
+            sandbox: isDevelopment // Activa sandbox automáticamente en desarrollo local
+        });
     </script>
     
     <!-- Font Awesome -->
