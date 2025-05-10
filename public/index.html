@@ -26,8 +26,8 @@
                 '        try {\n' +
                 '            console.log("Inicializando Pi SDK con versión 2.0 - FORZANDO MODO SANDBOX");\n' +
                 '            // Forzamos explícitamente el modo sandbox para evitar problemas de entorno\n' +
-                '            // Esto asegura que siempre usemos el entorno correcto\n' +
-                '            Pi.init({ version: "2.0", sandbox: true });\n' +
+                '            // Inicializar en modo producción\n' +
+                '            Pi.init({ version: "2.0", sandbox: false });\n' +
                 '            window.piInitDone = true;\n' +
                 '            // Verificar el objeto Pi para depuración\n' +
                 '            console.log("Estado del objeto Pi:", Pi);\n' +

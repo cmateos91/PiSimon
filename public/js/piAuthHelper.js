@@ -10,8 +10,8 @@ function authenticateWithPi() {
                 if (!window.piInitDone) {
                     console.log('Inicializando Pi SDK desde authenticateWithPi...');
                     try {
-                        // Forzar modo sandbox para desarrollo local
-                        Pi.init({ version: "2.0", sandbox: true });
+                        // Inicializar Pi SDK en modo producción
+                        Pi.init({ version: "2.0", sandbox: false });
                         window.piInitDone = true;
                         console.log('Pi SDK inicializado correctamente desde authenticateWithPi');
                         console.log('Estado del Pi SDK:', Pi);

@@ -5,13 +5,11 @@ const AppConfig = (function() {
     
     // Configuración base
     const config = {
-        // Modo desarrollo: automáticamente false si estamos en Pi Hosting
-        DEV_MODE: !isPiHosting && true,
+        // Modo desarrollo: desactivado para producción
+        DEV_MODE: false,
         
-        // URL de la API backend (configuración automática según entorno)
-        API_URL: isPiHosting 
-            ? 'https://sandbox.minepi.com/app/trader-1cf25e0f34abd9e0'  // Cambia esto a tu backend real para sandbox
-            : 'http://localhost:3000',
+        // URL de la API backend (configuración para producción)
+        API_URL: 'https://api.minepi.com/v2/me',  // URL para el entorno de producción de Pi
         
         // Información del juego
         GAME_INFO: {

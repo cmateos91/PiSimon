@@ -137,8 +137,8 @@
                 
                 // Intentar inicializar el SDK
                 try {
-                    log('Intentando inicializar Pi SDK en modo sandbox...', 'info');
-                    Pi.init({ version: "2.0", sandbox: true });
+                    log('Intentando inicializar Pi SDK en modo producción...', 'info');
+                    Pi.init({ version: "2.0", sandbox: false });
                     log('✅ Pi SDK inicializado correctamente', 'success');
                     
                     // Verificar si hay propiedades adicionales después de init
