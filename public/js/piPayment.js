@@ -10,25 +10,8 @@ const PiPayment = (function() {
         }
 
         try {
-            // Verificar que tengamos permisos para pagos
-            if (typeof Pi !== 'undefined' && !Pi.hasPermissions(['payments'])) {
-                // Si no tenemos permisos, mostrar mensaje y ofrecer reautenticación
-                NotificationSystem.show('Se requieren permisos adicionales para realizar pagos', 'warning');
-                
-                // Preguntar si desea volver a autenticarse para obtener los permisos
-                setTimeout(() => {
-                    if (confirm('Para poder realizar pagos, necesitas iniciar sesión nuevamente y conceder los permisos necesarios. ¿Quieres hacerlo ahora?')) {
-                        // Cerrar sesión y recargar la página
-                        localStorage.removeItem('pi_user');
-                        window.location.reload();
-                    }
-                }, 1000);
-                
-                return { 
-                    success: false, 
-                    error: 'Faltan permisos de pagos. Vuelve a iniciar sesión.'
-                };
-            }
+            // La verificación de permisos ya no es posible con hasPermissions
+            // Intentaremos el pago directamente y manejaremos cualquier error de permisos
             
             // Mostrar notificación de inicio de pago
             NotificationSystem.show('Preparando transacción de 1 Pi...', 'info');
@@ -65,8 +48,19 @@ const PiPayment = (function() {
             
             // Mostrar mensaje de error apropiado
             let errorMessage = error.message || 'Error desconocido durante el pago';
-            if (errorMessage.includes('permissions')) {
-                errorMessage = 'Se requieren permisos adicionales para realizar pagos. Vuelve a iniciar sesión.';
+            
+            // Manejar específicamente el error de falta de permisos
+            if (errorMessage.includes('permissions') || errorMessage.includes('scope')) {
+                errorMessage = 'Se requieren permisos adicionales para realizar pagos. Por favor, vuelve a iniciar sesión.';
+                
+                // Preguntar si desea volver a autenticarse para obtener los permisos
+                setTimeout(() => {
+                    if (confirm('Para poder realizar pagos, necesitas iniciar sesión nuevamente y conceder los permisos necesarios. ¿Quieres hacerlo ahora?')) {
+                        // Cerrar sesión y recargar la página
+                        localStorage.removeItem('pi_user');
+                        window.location.reload();
+                    }
+                }, 1000);
             }
             
             NotificationSystem.show(`Error al guardar: ${errorMessage}`, 'error', 5000);
@@ -87,22 +81,8 @@ const PiPayment = (function() {
                 return;
             }
             
-            // Verificar que Pi SDK tenga permisos para pagos
-            if (!Pi.hasPermissions(['payments'])) {
-                // Si no tenemos permisos de pagos, debemos volver a autenticar
-                NotificationSystem.show('Se requieren permisos adicionales. Por favor, inicia sesión nuevamente.', 'info', 5000);
-                
-                // Deslogueamos al usuario para forzar una nueva autenticación
-                localStorage.removeItem('pi_user');
-                
-                // Redirect a la página de inicio para volver a autenticar
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-                
-                reject(new Error('Se requieren permisos de pagos. Vuelve a iniciar sesión.'));
-                return;
-            }
+            // Intentar crear el pago directamente, ya que hasPermissions no está disponible
+            // Si no tiene permisos, Pi.createPayment fallará y lo capturaremos en el error
             
             // Datos del pago
             const paymentData = {

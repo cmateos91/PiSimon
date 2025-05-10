@@ -5,57 +5,21 @@ const PiUtils = (function() {
         return typeof Pi !== 'undefined';
     }
     
-    // Verificar si un usuario tiene todos los permisos necesarios
-    function hasAllRequiredPermissions() {
-        if (!isPiAvailable()) return false;
-        
-        // Verificar permisos para pagos
-        return Pi.hasPermissions(['payments']);
-    }
-    
-    // Obtener información sobre permisos faltantes
-    function getMissingPermissions() {
-        if (!isPiAvailable()) return ['SDK no disponible'];
-        
-        const required = ['username', 'payments'];
-        const missing = [];
-        
-        for (const perm of required) {
-            if (!Pi.hasPermissions([perm])) {
-                missing.push(perm);
-            }
-        }
-        
-        return missing;
-    }
-    
     // Sugerir reautenticar para obtener todos los permisos
     function suggestReauthentication() {
         // Si no estamos en Pi Browser, no hacer nada
         if (!isPiAvailable()) return;
         
-        // Verificar si faltan permisos
-        const missing = getMissingPermissions();
-        if (missing.length > 0) {
-            NotificationSystem.show(
-                `Faltan permisos: ${missing.join(', ')}. Se recomienda iniciar sesión nuevamente.`,
-                'warning',
-                8000
-            );
-            
-            // Sugerir cerrar sesión y volver a iniciarla
-            localStorage.removeItem('pi_user');
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
-        }
+        NotificationSystem.show(
+            `Para garantizar que tengas todos los permisos necesarios, te sugerimos cerrar sesión y volver a iniciarla.`,
+            'info',
+            8000
+        );
     }
     
     // Exponer métodos públicos
     return {
         isPiAvailable,
-        hasAllRequiredPermissions,
-        getMissingPermissions,
         suggestReauthentication
     };
 })();

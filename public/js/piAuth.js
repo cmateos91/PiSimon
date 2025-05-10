@@ -39,66 +39,48 @@ const PiAuth = (function() {
             return;
         }
         
-        const hasUsername = Pi.hasPermissions(['username']);
-        const hasPayments = Pi.hasPermissions(['payments']);
+        // La función hasPermissions no está disponible en esta versión del SDK
+        // Mostramos un mensaje informativo
+        NotificationSystem.show('Para asegurar que tienes todos los permisos, cierra sesión y vuelve a iniciarla concediendo permisos de pagos.', 'info', 8000);
         
-        let message = '';
-        let type = 'success';
-        
-        if (hasUsername && hasPayments) {
-            message = '✅ Tu cuenta tiene todos los permisos necesarios';
-        } else {
-            message = '⚠️ Faltan permisos:';
-            if (!hasUsername) message += ' username';
-            if (!hasPayments) message += ' payments';
-            message += '. Por favor, vuelve a iniciar sesión.';
-            type = 'warning';
-            
-            // Sugerir cerrar sesión y volver a iniciar
-            setTimeout(() => {
-                // Confirmar si quiere reiniciar sesión
-                if (confirm('Para obtener todos los permisos necesarios, debes cerrar sesión y volver a iniciarla. ¿Quieres hacerlo ahora?')) {
-                    logout(true);
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                }
-            }, 1000);
-        }
-        
-        NotificationSystem.show(message, type, 5000);
+        // Preguntar si desea cerrar sesión y volver a iniciar
+        setTimeout(() => {
+            if (confirm('Para garantizar que tengas todos los permisos necesarios, ¿quieres cerrar sesión y volver a iniciarla?')) {
+                logout(true);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            }
+        }, 1000);
     }
     
     // Verificar si se requiere reautenticación para obtener permisos adicionales
     function checkReauthentication() {
+        // Esta función ya no puede verificar permisos porque hasPermissions no está disponible
+        // Sólo verificamos si estamos en Pi Browser
         if (typeof Pi === 'undefined' || !isAuthenticated()) {
             return; // No podemos verificar si no está disponible Pi SDK o no estamos autenticados
         }
         
-        // Comprobar si tenemos los permisos necesarios
-        if (!Pi.hasPermissions(['payments'])) {
-            // Mostrar mensaje indicando que se requieren permisos adicionales
-            NotificationSystem.show('Se recomienda iniciar sesión nuevamente para obtener todos los permisos', 'info', 8000);
-            
-            // Mostrar indicador visual para sugerir reautenticación
-            const reauthIndicator = document.createElement('div');
-            reauthIndicator.style.cssText = `
-                position: absolute;
-                top: -8px;
-                right: -8px;
-                width: 16px;
-                height: 16px;
-                background-color: #FF5722;
-                border-radius: 50%;
-                animation: pulse 2s infinite;
-            `;
-            
-            // Añadir al botón de usuario
-            const userElement = document.querySelector('#authenticated');
-            if (userElement && userElement.style.display !== 'none') {
-                userElement.style.position = 'relative';
-                userElement.appendChild(reauthIndicator);
-            }
+        // Mostrar un pequeño indicador recomendando verificar permisos
+        const reauthIndicator = document.createElement('div');
+        reauthIndicator.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 16px;
+            height: 16px;
+            background-color: #FF5722;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            opacity: 0.5;
+        `;
+        
+        // Añadir al botón de usuario
+        const userElement = document.querySelector('#authenticated');
+        if (userElement && userElement.style.display !== 'none') {
+            userElement.style.position = 'relative';
+            userElement.appendChild(reauthIndicator);
         }
     }
     
