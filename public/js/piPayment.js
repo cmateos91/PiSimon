@@ -29,7 +29,9 @@ const PiPayment = (function() {
             const completionResult = await completePayment(paymentData.paymentId, score);
             
             // Mostrar efecto de confeti para celebrar
-            VisualEffects.createConfetti(30);
+            if (typeof VisualEffects !== 'undefined' && VisualEffects.createConfetti) {
+                VisualEffects.createConfetti(30);
+            }
             
             return {
                 success: true,
@@ -50,7 +52,7 @@ const PiPayment = (function() {
             let errorMessage = error.message || 'Error desconocido durante el pago';
             
             // Manejar específicamente el error de falta de permisos
-            if (errorMessage.includes('permissions') || errorMessage.includes('scope')) {
+            if (errorMessage.includes('permissions') || errorMessage.includes('scope') || errorMessage.includes('callback')) {
                 errorMessage = 'Se requieren permisos adicionales para realizar pagos. Por favor, vuelve a iniciar sesión.';
                 
                 // Preguntar si desea volver a autenticarse para obtener los permisos
@@ -84,8 +86,16 @@ const PiPayment = (function() {
             // Intentar crear el pago directamente, ya que hasPermissions no está disponible
             // Si no tiene permisos, Pi.createPayment fallará y lo capturaremos en el error
             
-            // Datos del pago
-            const paymentData = {
+            // Actualizar la interfaz para mostrar que se está procesando el pago
+            const saveScoreButton = document.getElementById('save-score');
+            if (saveScoreButton) {
+                saveScoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando pago...';
+                saveScoreButton.disabled = true;
+            }
+            
+            // Crear pago con el SDK de Pi
+            Pi.createPayment({
+                // Datos del pago
                 amount: 1, // 1 Pi
                 memo: `Simon Pi Game: Guardar puntuación ${score} puntos`,
                 metadata: { 
@@ -96,17 +106,7 @@ const PiPayment = (function() {
                     timestamp: new Date().toISOString(),
                     gameId: 'simon-pi'
                 }
-            };
-            
-            // Crear animación de carga mientras se procesa el pago
-            const saveScoreButton = document.getElementById('save-score');
-            if (saveScoreButton) {
-                saveScoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando pago...';
-                saveScoreButton.disabled = true;
-            }
-
-            // Crear pago con el SDK de Pi
-            Pi.createPayment(paymentData, {
+            }, {
                 // Callback de pago completado
                 onReadyForServerApproval: function(paymentId) {
                     console.log('Pago listo para aprobación del servidor:', paymentId);
@@ -134,7 +134,7 @@ const PiPayment = (function() {
                     
                     reject(new Error('Pago cancelado por el usuario'));
                 },
-                // Callback de error
+                // Callback de error de pago
                 onError: function(error, payment) {
                     console.error('Error en el pago:', error, payment);
                     
@@ -148,6 +148,21 @@ const PiPayment = (function() {
                     NotificationSystem.show(`Error en el pago: ${error}`, 'error');
                     
                     reject(new Error(`Error en el pago: ${error}`));
+                },
+                // IMPORTANTE: Agregar el callback onIncompletePaymentFound
+                onIncompletePaymentFound: function(payment) {
+                    console.log("Se encontró un pago incompleto:", payment);
+                    
+                    // Notificar al usuario
+                    NotificationSystem.show('Se encontró un pago pendiente. Procesando...', 'info');
+                    
+                    // Resolver con el pago cancelado si es necesario
+                    return Promise.resolve({
+                        status: 'CANCELLED',
+                        memo: payment ? payment.memo : 'Pago cancelado',
+                        amount: payment ? payment.amount : 0,
+                        transaction: null
+                    });
                 }
             });
         });

@@ -210,7 +210,7 @@ const PiAuth = (function() {
             };
             
             // Llamar al método de autenticación según la documentación oficial
-            // Solicitamos los scopes 'username' y 'payments'
+            // Solicitamos explícitamente los permisos 'username' y 'payments'
             Pi.authenticate(['username', 'payments'], handleIncompletePayment).then(function(auth) {
                 console.log('Autenticación exitosa:', auth);
                 
@@ -312,12 +312,12 @@ const PiAuth = (function() {
             const saveScoreButton = document.getElementById('save-score');
             const gameOverScreen = document.getElementById('game-over');
             
-            if (saveScoreButton && gameOverScreen.style.display !== 'none') {
+            if (saveScoreButton && gameOverScreen && gameOverScreen.style.display !== 'none') {
                 saveScoreButton.style.display = '';
             }
             
             // Recargar el ranking para mostrar la posición del usuario
-            if (typeof LeaderboardManager !== 'undefined') {
+            if (typeof LeaderboardManager !== 'undefined' && LeaderboardManager.loadLeaderboard) {
                 LeaderboardManager.loadLeaderboard();
             }
         } else {
