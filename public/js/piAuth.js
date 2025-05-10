@@ -14,12 +14,8 @@ const PiAuth = (function() {
     function authenticateTestMode() {
         console.log('Usando modo de prueba para autenticación');
         
-        // Simular un usuario para pruebas
-        const testUser = {
-            uid: 'test_user_123',
-            username: 'TestUser',
-            accessToken: 'test_token_123'
-        };
+        // Usar el usuario de prueba definido en la configuración
+        const testUser = AppConfig.AUTH.TEST_USER;
         
         // Guardar en localStorage
         localStorage.setItem('pi_user', JSON.stringify(testUser));
@@ -29,7 +25,11 @@ const PiAuth = (function() {
         updateUI(true);
         
         // Mostrar notificación
-        NotificationSystem.show('Autenticado en modo de prueba', 'info', 3000);
+        NotificationSystem.show(
+            AppConfig.DEV_MODE ? 'Autenticado en modo de desarrollo (simulado)' : 'Autenticado en modo de prueba', 
+            'info', 
+            3000
+        );
         
         // Resetear botón
         loginButton.disabled = false;
@@ -38,6 +38,13 @@ const PiAuth = (function() {
 
     // Verificar si estamos en el entorno correcto de Pi
     function checkPiEnvironment() {
+        // En modo desarrollo, no necesitamos Pi SDK real
+        if (AppConfig.DEV_MODE) {
+            console.info('Ejecutando en modo desarrollo. No se requiere Pi SDK.');
+            return false;
+        }
+        
+        // Verificar si el SDK de Pi está disponible
         if (typeof Pi === 'undefined') {
             console.warn('SDK de Pi no detectado. Es posible que no estés usando Pi Browser.');
             return false;
@@ -48,6 +55,25 @@ const PiAuth = (function() {
 
     // Inicializar el SDK de Pi
     function init() {
+        // Verificar si estamos en modo desarrollo
+        if (AppConfig.DEV_MODE) {
+            console.log('Iniciando en modo desarrollo - No se usará el SDK de Pi');
+            // Aún configuramos la UI para mostrar el botón
+            loginButton.addEventListener('click', authenticate);
+            logoutButton.addEventListener('click', logout);
+            
+            // Añadir clase de carga durante la inicialización
+            setTimeout(() => {
+                loginButton.classList.remove('loading');
+                loginButton.innerHTML = '<img src="img/pi3d.png" alt="Pi" class="pi-logo-button"> Iniciar sesión con Pi';
+                
+                // Comprobar si hay una sesión activa
+                checkSession();
+            }, 500);
+            
+            return;
+        }
+        
         // Verificar si estamos en Pi Browser
         if (!checkPiEnvironment()) {
             console.warn('No se detectó Pi Browser. La funcionalidad de autenticación puede no estar disponible.');
@@ -106,6 +132,18 @@ const PiAuth = (function() {
         // Añadir efecto de carga
         loginButton.disabled = true;
         loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando...';
+        
+        // En modo desarrollo, siempre usamos autenticación simulada
+        if (AppConfig.DEV_MODE) {
+            console.log('Modo desarrollo activo - Usando autenticación simulada');
+            NotificationSystem.show('Simulando autenticación...', 'info');
+            
+            // Simular retraso para mejor experiencia de usuario
+            setTimeout(() => {
+                authenticateTestMode();
+            }, 800);
+            return;
+        }
         
         NotificationSystem.show('Conectando con Pi Network...', 'info');
         

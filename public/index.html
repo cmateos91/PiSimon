@@ -6,9 +6,22 @@
     <title>Simon Pi - El juego de memoria para la red Pi</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/theme.css">
-    <!-- Pi SDK -->
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <!-- No inicializar aquí, lo haremos en piAuth.js -->
+    <!-- Configuración de la aplicación -->
+    <script src="js/config.js"></script>
+    
+    <!-- Pi SDK (Real o Simulado) -->
+    <script>
+        // Cargar el SDK real o simulado según el modo
+        if (AppConfig && AppConfig.DEV_MODE) {
+            // En modo desarrollo, cargar la simulación
+            document.write('<script src="js/piSdkMock.js"><\/script>');
+            console.log('Cargando SDK de Pi simulado para desarrollo');
+        } else {
+            // En modo producción, cargar el SDK real
+            document.write('<script src="https://sdk.minepi.com/pi-sdk.js"><\/script>');
+            console.log('Cargando SDK de Pi real');
+        }
+    </script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
